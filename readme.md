@@ -1,3 +1,4 @@
+## Technical infos for developing the shader
 ### Textures
 Render Texture | Usage
 ---------------|------------
@@ -9,7 +10,7 @@ Render Texture | Usage
 `colortex5`    | Enchantment glint mask (R=Is glint?; G=Is gbuffers_hand?; B=linearized depth)
 `colortex6`    | Enchantment glint color
 `colortex7`    | Normals
-`colortex8`    | DH Stuff Mask
+`colortex8`    | LOD Stuff Mask
 `colortex9`    | Enchantment unglint mask
 `colortex10`   | ---
 `colortex11`   | ---
@@ -22,7 +23,7 @@ Render Texture | Usage
 
 Composite Program | Usage
 ------------------|------------
-`deffered`        |DH SSAO, fog (opaque stuff)
+`deffered`        |LOD SSAO, fog (opaque stuff)
 `composite1`      |Enchantment glint mask & color blur (x direction)
 `composite2`      |Enchantment glint mask & color blur (y direction)
 `composite3`      |Enchantment glint outline calculation
@@ -32,9 +33,13 @@ Composite Program | Usage
 ### Block IDs
   ID range | Usage
 -----------|------------
-`1024-2047`|Glowing blocks
+`100-199`  |Custom colored light colors
+`200`      |Colored translucents that tint light
+`201`      |Blocks fully ignored by colored lighting
+`202`      |Blocks treated as transparent by colored lighting, not tinting any light
+`1000-1063`|Overrides to the passability mask for voxelized blocks
 
-### Changelog
+## Changelog
 #### Beta 8
 * removed dithering from Sable physics objects
 * replaced all mix(a, b, step(...))'s with ... ? b : a
