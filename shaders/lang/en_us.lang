@@ -1,0 +1,78 @@
+option.DO_COLORED_LIGHTING = Do colored lighting
+option.DO_COLORED_LIGHTING.comment = Enables/Disables colored lighting. Disabling this improves your FPS and reduces VRAM usage by 32-256MiB, but makes any and all lights the same color.
+
+option.PLAYER_FOV = Player FOV
+option.PLAYER_FOV.comment = Your FOV. Please set this to match the value in Minecraft's settings.
+
+option.RESOLUTION_TARGET_MAIN = Target screen resolution
+option.RESOLUTION_TARGET_MAIN.comment = The target vertical resolution for the main stuff rendered on the screen.
+option.RESOLUTION_TARGET_HAND = Target hand resolution
+option.RESOLUTION_TARGET_HAND.comment = The target vertical resolution for the hand.
+
+option.FINAL_IMAGE_DITHERING_REDUCTION = Screen dithering reduction
+option.FINAL_IMAGE_DITHERING_REDUCTION.comment = The amount by which to reduce the dithering of the screen. 0 = Full dithering (the noisiest). 0.5 = ~half of the colors get dithered (more parts of the screen won't have noisy patterns). 0.95 = basically no dithering, only flat colors
+
+option.FINAL_IMAGE_STYLE = Screen rendering style
+option.FINAL_IMAGE_STYLE.comment = Specifies the style of post-processing effects applied to the final image.
+value.FINAL_IMAGE_STYLE.0 = True Color
+value.FINAL_IMAGE_STYLE.1 = Posterized
+value.FINAL_IMAGE_STYLE.2 = Dithered
+
+option.DITHER_LIGHTING = Dither lighting
+option.DITHER_LIGHTING.comment = Whether or not the lighting should be dithered or not. Produces noisy patterns on stuff, hence why it is optional.
+
+option.DISABLE_BACKFACE_CULLING = Disable Backface Culling
+option.DISABLE_BACKFACE_CULLING.comment = Disables Backface Culling for solid blocks. Makes colored lighting >16 Blocks away from the player more accurate, but costs performance (minimal impact on hardware with enough data throughput, e.g. NVidia or dedicated Intel/AMD hardware, but a noticeable impact on e.g. integrated graphics).
+
+option.VOXEL_AREA_SIZE = Colored lighting area
+option.VOXEL_AREA_SIZE.comment = Describes the size of the cube volume in which to compute colored lighting. Higher values produce colored lighting further away, but also cost more FPS (256 is ~8x as expensive as 128)
+
+option.DITHERING_REDUCTION = Dithering Reduction
+option.DITHERING_REDUCTION.comment = The amount by which to reduce the dithering of the lighting. 0 = Full dithering (the noisiest). 0.5 = ~half of the lit up area gets dithering (some parts of the light are flat colors). 0.95 = basically no dithering, only flat colors
+
+option.LIGHT_DITHERING_MODE = Dithering Mode
+option.LIGHT_DITHERING_MODE.comment = Specifies what gets dithered. Brightness mode produces visible seams between colors, but looks less noisy. Color & Brightness blends everything, but looks noisier close up
+value.LIGHT_DITHERING_MODE.0 = Brightness
+value.LIGHT_DITHERING_MODE.1 = Color & Brightness
+
+option.LIGHT_POSTERIZATION_COLSPACE = Operation Color Space
+option.LIGHT_POSTERIZATION_COLSPACE.comment = Specifies in what color space posterization and dithering are applied. OkLAB gives somewhat better results when dithering everything, but weirdly blends between red and green when close up. HSV is ok everywhere, but creates weird patterns on some solid colors when dithering everything
+value.LIGHT_POSTERIZATION_COLSPACE.0 = HSV
+value.LIGHT_POSTERIZATION_COLSPACE.1 = OkLAB
+
+option.LIGHT_PROPAGATION_WORKGROUP_SIZE = Propagation Workgroup Size
+option.LIGHT_PROPAGATION_WORKGROUP_SIZE.comment = (Important for performance!). Specifies the ratio between workgroup size and workgroup count for the compute shader doing the lighting propagation.. Choose whatever value is faster for you (on AMD hardware, 4 is faster)
+
+option.RAIN_REFRACTION = Rain Refraction
+option.RAIN_REFRACTION.comment = Toggles the refraction (and reflection) effect on rain. Costs ~10FPS on an AMD RX 6700XT
+
+option.BETA_VOLUMETRIC_CLOUDS = (BETA) Volumetric Clouds
+option.BETA_VOLUMETRIC_CLOUDS.comment = Toggles volumetric clouds. WARNING: This is currently an unfinished feature; it uses way too much performance and doesn't fully work properly or look good yet
+
+screen.LIGHTING = Lighting
+screen.FINAL_IMAGE = Screen effects
+
+profile.comment = FULL - Everything on Max (~0.4x Vanilla FPS). CL_PERF - Reduced colored lighting radius (~0.5x Vanilla FPS). CL_MINIMAL - Fastest config supporting colored lighting (~0.6x Vanilla FPS). NO_CL - Colored lighting disabled (~0.75x Vanilla FPS). MINIMAL_PERF - Minimal config for maximum FPS (~0.78x Vanilla FPS)
+
+option.DEBUG_DISPLAY_TEXTURE = Display Texture
+value.DEBUG_DISPLAY_TEXTURE.-1 = Off
+value.DEBUG_DISPLAY_TEXTURE.-2 = depthtex0
+value.DEBUG_DISPLAY_TEXTURE.-3 = depthtex1
+value.DEBUG_DISPLAY_TEXTURE.-4 = dhDepthTex0
+value.DEBUG_DISPLAY_TEXTURE.-5 = dhDepthTex1
+value.DEBUG_DISPLAY_TEXTURE.0 = colortex0
+value.DEBUG_DISPLAY_TEXTURE.1 = colortex1
+value.DEBUG_DISPLAY_TEXTURE.2 = colortex2
+value.DEBUG_DISPLAY_TEXTURE.3 = colortex3
+value.DEBUG_DISPLAY_TEXTURE.4 = colortex4
+value.DEBUG_DISPLAY_TEXTURE.5 = colortex5
+value.DEBUG_DISPLAY_TEXTURE.6 = colortex6
+value.DEBUG_DISPLAY_TEXTURE.7 = colortex7
+value.DEBUG_DISPLAY_TEXTURE.8 = colortex8
+value.DEBUG_DISPLAY_TEXTURE.9 = colortex9
+value.DEBUG_DISPLAY_TEXTURE.10 = colortex10
+value.DEBUG_DISPLAY_TEXTURE.11 = colortex11
+value.DEBUG_DISPLAY_TEXTURE.12 = colortex12
+value.DEBUG_DISPLAY_TEXTURE.13 = colortex13
+value.DEBUG_DISPLAY_TEXTURE.14 = colortex14
+value.DEBUG_DISPLAY_TEXTURE.15 = colortex15

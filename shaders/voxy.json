@@ -1,0 +1,32 @@
+{
+    "version": 1,
+    "uniforms": [
+        "worldTime",
+        "ambientLight",
+        "skyColor", "fogColor",
+        "sunPosition", "moonPosition",
+        "gbufferModelView", "gbufferModelViewInverse",
+        "gbufferProjection", "gbufferProjectionInverse",
+        "vxProj", "vxProjInv", "vxModelView",
+        "viewWidth", "viewHeight",
+        "wetness", "rainStrength", "thunderStrength",
+        "isEyeInWater",
+        "fogEnd",
+        "cameraPositionInt", "cameraPosition",
+        "heldItemId", "heldItemId2",
+        "eyeAltitude",
+        "sunAngle"
+    ],
+    "samplers": {
+        "depthtex0": "sampler2D",
+        "vxDepthTexOpaque": "sampler2D",
+        "vxDepthTexTrans": "sampler2D"
+    },
+#ifdef RENDER_LMCOORD
+    "opaqueDrawBuffers": [0,1,7,8],
+    "translucentDrawBuffers": [0,1,7,8]
+#else
+    "opaqueDrawBuffers": [0,7,8],
+    "translucentDrawBuffers": [0,7,8]
+#endif
+}

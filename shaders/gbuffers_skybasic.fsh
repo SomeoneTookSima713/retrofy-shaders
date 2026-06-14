@@ -1,29 +1,39 @@
-#version 330 compatibility
+#version 430 compatibility
+
+#include "/effects/fog_and_sky.glsl"
 
 uniform int renderStage;
 uniform float viewHeight;
 uniform float viewWidth;
 uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
+uniform mat4 dhProjectionInverse;
 uniform vec3 fogColor;
 uniform vec3 skyColor;
 
+uniform vec3 sunPosition;
+uniform vec3 moonPosition;
+
+uniform float sunAngle;
+uniform float wetness;
+uniform float rainStrength;
+uniform float thunderStrength;
+
+uniform ivec3 cameraPositionInt;
+uniform vec3 cameraPosition;
+
+uniform bool isEyeInWater;
+
+uniform ivec2 eyeBrightness;
+
+uniform float fogEnd;
+
+uniform int heldItemId;
+uniform int heldItemId2;
+
 in vec4 glcolor;
-
-float fogify(float x, float w) {
-	return w / (x * x + w);
-}
-
-vec3 calcSkyColor(vec3 pos) {
-	float upDot = dot(pos, gbufferModelView[1].xyz); //not much, what's up with you?
-	return mix(skyColor, fogColor, fogify(max(upDot, 0.0), 0.25));
-}
-
-vec3 screenToView(vec3 screenPos) {
-	vec4 ndcPos = vec4(screenPos, 1.0) * 2.0 - 1.0;
-	vec4 tmp = gbufferProjectionInverse * ndcPos;
-	return tmp.xyz / tmp.w;
-}
 
 /* RENDERTARGETS: 0 */
 layout(location = 0) out vec4 color;
@@ -31,8 +41,10 @@ layout(location = 0) out vec4 color;
 void main() {
 	if (renderStage == MC_RENDER_STAGE_STARS) {
 		color = glcolor;
+		// discard;
 	} else {
-		vec3 pos = screenToView(vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0));
-		color = vec4(calcSkyColor(normalize(pos)), 1.0);
+		vec4 pos_w = gbufferProjectionInverse * (vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0, 1.0) * 2.0 - vec4(1.0));
+		FogMats mats = DEFAULT_FOG_MATS;
+		color = vec4(sky_calc_color(normalize(pos_w.xyz / pos_w.w)*100.0, mats, skyColor, fogColor, sunPosition, moonPosition, eyeBrightness, eval_values(DEFAULT_FOG_PARAMS, mats)), 1.0);
 	}
 }
