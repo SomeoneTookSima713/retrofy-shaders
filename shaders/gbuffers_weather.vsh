@@ -26,6 +26,6 @@ void main() {
 
 	colored_lighting_compute_vertex_outputs_general(normalize(gl_Normal), cameraPositionFract, previousCameraPositionFract, frameCounter);
 	#ifndef DO_COLORED_LIGHTING
-		blocklight_color = BLOCKLIGHT_COLOR;
+		blocklight = vec4(BLOCKLIGHT_COLOR, lmcoord.x);
 	#endif
 }

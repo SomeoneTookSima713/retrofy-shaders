@@ -15,6 +15,7 @@
         "cameraPositionInt", "cameraPosition",
         "heldItemId", "heldItemId2",
         "eyeAltitude",
+        "eyeBrightness",
         "sunAngle"
     ],
     "samplers": {

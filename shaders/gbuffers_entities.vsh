@@ -2,6 +2,7 @@
 
 #define CLH_SAFE_MODE
 // #define IMPL_DITHER
+#include "/effects/options.glsl"
 #include "/effects/colored_lighting/vertex.glsl"
 #define VOXELIZE_ENTITIES
 #include "/effects/colored_lighting/voxelization.glsl"
@@ -42,7 +43,7 @@ void main() {
 	colored_lighting_compute_vertex_outputs_general(normal.xyz, cameraPositionFract, previousCameraPositionFract, frameCounter);
     blocklight = entityId == 300 ? vec4(BLOCKLIGHT_COLOR, lmcoord.x) : blocklight;
 	#ifndef DO_COLORED_LIGHTING
-		blocklight = vec4(BLOCKLIGHT, lmcoord.x);
+		blocklight = vec4(BLOCKLIGHT_COLOR, lmcoord.x);
 	#endif
 
     vec3 world_vert_pos = mat3(gbufferModelViewInverse) * (gl_ModelViewMatrix * gl_Vertex).xyz;

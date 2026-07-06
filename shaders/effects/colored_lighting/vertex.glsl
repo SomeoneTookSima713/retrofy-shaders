@@ -46,39 +46,41 @@ out vec4 blocklight;
 #define CLH_READ_COLOR(read_pos) (((frameCounter & 1) == 0) ? imageLoad(color_img, read_pos) : imageLoad(color_img_flip, read_pos))
 #define CLH_SAMPLE_COLOR(read_pos) (((frameCounter & 1) == 0) ? texture3D(color_img_sampler, read_pos) : texture3D(color_img_flip_sampler, read_pos))
 
-vec4 colored_lighting_compute_entity_colored_lighting(vec3 relative_pos, vec3 previousCameraPositionFract, int frameCounter) {
-    ivec4 bin_offsets = ivec4(ivec3(sign(fract(relative_pos / 16.0) - 0.5)), 0);
+#ifdef DO_COLORED_LIGHTING
+    vec4 colored_lighting_compute_entity_colored_lighting(vec3 relative_pos, vec3 previousCameraPositionFract, int frameCounter) {
+        ivec4 bin_offsets = ivec4(ivec3(sign(fract(relative_pos / 16.0) - 0.5)), 0);
 
-    ivec3 bin_pos_base = ivec3(relative_pos / 16.0 + float(cleb_rel_to_abs_offset));
-    int[] bin_ids = int[](
-        colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.www),
-        colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.xww),
-        colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.wyw),
-        colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.xyw),
-        colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.wwz),
-        colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.xwz),
-        colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.wyz),
-        colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.xyz)
-    );
+        ivec3 bin_pos_base = ivec3(relative_pos / 16.0 + float(cleb_rel_to_abs_offset));
+        int[] bin_ids = int[](
+            colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.www),
+            colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.xww),
+            colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.wyw),
+            colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.xyw),
+            colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.wwz),
+            colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.xwz),
+            colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.wyz),
+            colored_lighting_get_entity_bin(bin_pos_base + bin_offsets.xyz)
+        );
 
-    vec4 color = vec4(0.0);
+        vec4 color = vec4(0.0);
 
-    for (int j = 0; j < 8; j++) {
-        int bin_id = bin_ids[j];
-        for (int i = 0; i < cl_entity_bins[bin_id].light_count; i++) {
-            CLEntityLightDecoded light = colored_lighting_get_entity_light(bin_id, i);
-            if (colored_lighting_light_is_current(light, frameCounter)) {
-                vec3 rel_pos = light.position - relative_pos;
-                float manhattan_dist = abs(rel_pos.x) + abs(rel_pos.y) + abs(rel_pos.z);
-                
-                float strength = clamp(light.color.a - manhattan_dist/8.0, 0.0, 1.0);
-                color = max(color, vec4(light.color.rgb * strength, strength));
+        for (int j = 0; j < 8; j++) {
+            int bin_id = bin_ids[j];
+            for (int i = 0; i < cl_entity_bins[bin_id].light_count; i++) {
+                CLEntityLightDecoded light = colored_lighting_get_entity_light(bin_id, i);
+                if (colored_lighting_light_is_current(light, frameCounter)) {
+                    vec3 rel_pos = light.position - relative_pos;
+                    float manhattan_dist = abs(rel_pos.x) + abs(rel_pos.y) + abs(rel_pos.z);
+                    
+                    float strength = clamp(light.color.a - manhattan_dist/8.0, 0.0, 1.0);
+                    color = max(color, vec4(light.color.rgb * strength, strength));
+                }
             }
         }
-    }
 
-    return clamp(color, vec4(vec3(AMBIENT_LIGHT_ADD), 0.0), vec4(1.0));
-}
+        return clamp(color, vec4(vec3(AMBIENT_LIGHT_ADD), 0.0), vec4(1.0));
+    }
+#endif
 
 void colored_lighting_compute_vertex_outputs_terrain(vec4 at_midBlock, vec3 normal, vec3 cameraPositionFract, vec3 previousCameraPositionFract, int frameCounter) {
     CLH_FOOTPOS_CALCULATE;

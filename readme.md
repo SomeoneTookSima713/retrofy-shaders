@@ -40,7 +40,13 @@ Composite Program | Usage
 `1000-1063`|Overrides to the passability mask for voxelized blocks
 
 ## Changelog
-#### Beta 8
+### Beta 9
+* improved passability checking
+    * now light is able to only pass through blocks from certain directions
+    * automatic passability detection based on block meshes is now more dynamic
+    * this change may have reintroduced some flickering, but it should at most be a rare occurence
+
+### Beta 8
 * removed dithering from Sable physics objects
 * replaced all mix(a, b, step(...))'s with ... ? b : a
     * produces less GPU instructions -> slightly faster
@@ -55,7 +61,7 @@ Composite Program | Usage
 * reworked entity colored lighting (only works on items rn)
 * fixed block lighting on Sable contraptions (sky lighting is still broken, so no perceived lighting during the day)
 
-#### Beta 7
+### Beta 7
 * refactored colored lighting, splitting it into two files and removing the weird and clunky snipped include system
     * uses functions instead of macro-based code snippets now
     * is faster (at least on AMD), as it now samples the 3D textures for colored lighting way less often
@@ -63,17 +69,17 @@ Composite Program | Usage
 * replaced all integer-modulo operations over power-of-two modulus' with bitwise operations
     * is faster, because for some reason integer modulo gets emulated using floats on most platforms
 
-#### Beta 6
+### Beta 6
 * gated rendering lightmap info to a texture behind the `RENDER_LMCOORD` preprocessor macro
     * the flag currently goes unused, removing one texture binding and write operation from most shaders
 * 6.1: Added a micro-optimization to possibly reduce the amount of used registers in `blur_but_go_vroom.glsl`'s functions
 
-#### Beta 5
+### Beta 5
 * changed the NVidia translucents fix to be more robust and permanent
 
-#### Beta 4
+### Beta 4
 * implemented a botch fix for translucent rendering on NVidia
 * 4.1: Fixed a compiler crash 'cause I forgot to remove the usage of a commented-out boolean value
 
-#### Older versions
+### Older versions
 * idk anymore

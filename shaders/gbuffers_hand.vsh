@@ -49,7 +49,7 @@ void main() {
 
 	colored_lighting_compute_vertex_outputs_general(normal, cameraPositionFract, previousCameraPositionFract, frameCounter);
 	#ifndef DO_COLORED_LIGHTING
-		blocklight_color = BLOCKLIGHT_COLOR;
+		blocklight = vec4(BLOCKLIGHT_COLOR, lmcoord.x);
 	#endif
 
 	// TODO: Do my new implementation for entity colored lighting

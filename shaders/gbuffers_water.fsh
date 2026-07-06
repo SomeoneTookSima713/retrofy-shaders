@@ -8,12 +8,23 @@
 #include "/lib/dh_interp.glsl"
 // #include "/lib/cam_utils.glsl"
 #include "/lib/unified_depth.glsl"
+#include "/lib/voxelization_encoding.glsl"
 #include "/effects/colored_lighting/fragment.glsl"
 
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
 uniform sampler2D colortex8;
 uniform sampler2D depthtex0;
+
+#ifdef DEBUG_COLORED_LIGHTING
+    layout(r32ui) uniform uimage3D voxel_img;
+    uniform usampler3D voxel_img_sampler;
+    uniform sampler3D color_img_sampler;
+    uniform sampler3D color_img_flip_sampler;
+
+    #define CLH_READ_COLOR(read_pos) (((frameCounter & 1) == 0) ? imageLoad(color_img, read_pos) : imageLoad(color_img_flip, read_pos))
+    #define CLH_SAMPLE_COLOR(read_pos) (((frameCounter & 1) == 0) ? texture3D(color_img_sampler, read_pos) : texture3D(color_img_flip_sampler, read_pos))
+#endif
 
 #if defined DISTANT_HORIZONS
     uniform sampler2D dhDepthTex0;
@@ -57,7 +68,7 @@ uniform float dhNearPlane;
 uniform float dhFarPlane;
 
 // Declared by cam_utils.glsl
-// uniform vec3 cameraPositionFract;
+uniform vec3 cameraPositionFract;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -82,6 +93,8 @@ uniform float fogEnd;
 uniform int heldItemId;
 uniform int heldItemId2;
 
+uniform int frameCounter;
+
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 color;
@@ -90,6 +103,15 @@ in vec3 tangent;
 in vec3 bitangent;
 #ifdef DISTANT_HORIZONS
 	in float far_plane_distance;
+#endif
+
+#ifdef DEBUG_COLORED_LIGHTING
+    in vec3 frag_at_midBlock;
+    flat in int dbg_did_voxelize;
+    flat in int dbg_overwrote_value;
+    flat in int dbg_passable;
+    flat in int dbg_passability_mask;
+    flat in int dbg_passability_mask_pos;
 #endif
 
 #ifdef RENDER_LMCOORD
@@ -141,7 +163,7 @@ void main() {
     vec4 dh_view_w = gbufferProjectionInverse * vec4(dh_clip_space, 1.0);
     vec3 dh_view = dh_view_w.xyz / dh_view_w.w;
 
-	bool dh_mask = texture(colortex8, gl_FragCoord.xy / view_size).r > 0.5 && reg_view.z - dh_view.z <= 0.0;
+	bool dh_mask = false; //texture(colortex8, gl_FragCoord.xy / view_size).r > 0.5 && clamp(reg_view.z - dh_view.z, -8.0, 2.0) == reg_view.z - dh_view.z;
 	#ifdef DISTANT_HORIZONS
 	if (dh_mask || should_discard_with_blur(far_plane_distance, gl_FragCoord.xy)) {
 	#else
@@ -149,6 +171,7 @@ void main() {
 	#endif
 	// if (should_discard_with_blur(far_plane_distance, gl_FragCoord.xy)) {
 		discard;
+        // colortex0.rgb = vec3((dh_view.z - reg_view.z) * 0.01);
 	}
 
 	// vec3 viewspace = unidepth_get_viewspace_position(gl_FragCoord.xy/view_size, gl_FragCoord.z, texture(LOD_DEPTHTEX, gl_FragCoord.xy/view_size).r, gbufferProjectionInverse, LOD_INV_PROJ);
@@ -169,6 +192,92 @@ void main() {
 		DEFAULT_FOG_PARAMS
 	);
 	colortex0.rgb = mix(colortex0.rgb, fog_col.rgb, fog_col.a);
+
+    #ifdef DEBUG_COLORED_LIGHTING
+        vec4 world_pos_w = gbufferModelViewInverse * gbufferProjectionInverse * vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2.0 - 1.0, gl_FragCoord.z * 2.0 - 1.0, 1.0);
+        vec3 world_pos = world_pos_w.xyz / world_pos_w.w;
+        vec3 voxel_pos_float = block_centered_relative_pos + float(VOXEL_AREA_RADIUS);
+        ivec3 voxel_pos_int = ivec3(block_centered_relative_pos + VOXEL_AREA_RADIUS);
+		#ifdef DEBUG_CL_FLOODFILL_COLOR
+            colortex0.rgb = (CLH_SAMPLE_COLOR((world_pos + cameraPositionFract + float(VOXEL_AREA_RADIUS))/float(VOXEL_AREA_SIZE))).rgb;
+        #endif
+        #if defined DEBUG_CL_VOXEL_COLOR || defined DEBUG_CL_VOXEL_INFO
+            uint voxel_color_payload = imageLoad(voxel_img, voxel_pos_int).r;
+            uint voxel_info_payload = imageLoad(voxel_img, voxel_pos_int + ivec3(0, VOXEL_AREA_SIZE, 0)).r;
+            vec4 voxel_color = decode_color_and_light(voxel_color_payload);
+            VoxelInfo voxel_info = decode_voxel_info(voxel_info_payload);
+        #endif
+
+        #ifdef DEBUG_CL_VOXEL_COLOR
+            if (!voxel_info_is_empty(voxel_info) && voxel_info.is_light) {
+                colortex0.rgb = voxel_color.rgb;
+            }
+        #endif
+        #ifdef DEBUG_CL_VOXEL_INFO
+            #ifdef DEBUG_CL_VOXEL_INFO
+                #define DBG_CLVI_DISPCOND (!voxel_info.is_light || frag_at_midBlock.x > 0.0)
+            #else
+                #define DBG_CLVI_DISPCOND true
+            #endif
+
+            if (!voxel_info_is_empty(voxel_info) && DBG_CLVI_DISPCOND) {
+                #if DEBUG_CL_VOXEL_INFO_MODE == 0
+                    vec3[] colors = vec3[](
+                        voxel_info.is_passable ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 0.0, 0.0),
+                        voxel_info.tints_light ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 0.0),
+                        voxel_info.is_gbuffers ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, 0.0)
+                    );
+                    colortex0.rgb = colors[clamp(int((frag_at_midBlock[DEBUG_CL_DISPDIR] + 0.5) * 3.0), 0, 2)];
+                #elif DEBUG_CL_VOXEL_INFO_MODE == 1
+                    vec3[] colors = vec3[](
+                        vec3(1.0, 0.5, 0.0) * float(voxel_info.passability_mask & 1),
+                        vec3(0.5, 1.0, 0.0) * float((voxel_info.passability_mask & 2) >> 1),
+                        vec3(1.0, 0.5, 0.0) * float((voxel_info.passability_mask & 4) >> 2),
+                        vec3(0.5, 1.0, 0.0) * float((voxel_info.passability_mask & 8) >> 3),
+                        vec3(1.0, 0.5, 0.0) * float((voxel_info.passability_mask & 16) >> 4),
+                        vec3(0.5, 1.0, 0.0) * float((voxel_info.passability_mask & 32) >> 5)
+                    );
+                    colortex0.rgb = colors[clamp(int((frag_at_midBlock[DEBUG_CL_DISPDIR] + 0.5) * 6.0), 0, 5)];
+                #elif DEBUG_CL_VOXEL_INFO_MODE == 2
+                    vec3[] colors = vec3[](
+                        voxel_info.is_passable ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 0.0, 0.0),
+                        voxel_info.tints_light ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 0.0),
+                        voxel_info.is_gbuffers ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, 0.0),
+                        vec3(1.0, 0.5, 0.0) * float(voxel_info.passability_mask & 1),
+                        vec3(0.5, 1.0, 0.0) * float((voxel_info.passability_mask & 2) >> 1),
+                        vec3(1.0, 0.5, 0.0) * float((voxel_info.passability_mask & 4) >> 2),
+                        vec3(0.5, 1.0, 0.0) * float((voxel_info.passability_mask & 8) >> 3),
+                        vec3(1.0, 0.5, 0.0) * float((voxel_info.passability_mask & 16) >> 4),
+                        vec3(0.5, 1.0, 0.0) * float((voxel_info.passability_mask & 32) >> 5),
+                        vec3(1.0, 0.0, 1.0) * float(voxel_info.timestamp) / 16.0
+                    );
+                    colortex0.rgb = colors[clamp(int((frag_at_midBlock[DEBUG_CL_DISPDIR] + 0.5) * 10.0), 0, 9)];
+                #elif DEBUG_CL_VOXEL_INFO_MODE == 3
+                    vec3[] colors = vec3[](
+                        vec3(0.5),
+                        bool(dbg_did_voxelize) ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passable) ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_overwrote_value) ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask & 1) ? vec3(0.5, 1.0, 0.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask & 2) ? vec3(1.0, 0.5, 0.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask & 4) ? vec3(0.5, 1.0, 0.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask & 8) ? vec3(1.0, 0.5, 0.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask & 16) ? vec3(0.5, 1.0, 0.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask & 32) ? vec3(1.0, 0.5, 0.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask_pos & 1) ? vec3(0.0, 0.5, 1.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask_pos & 2) ? vec3(0.0, 1.0, 0.5) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask_pos & 4) ? vec3(0.0, 0.5, 1.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask_pos & 8) ? vec3(0.0, 1.0, 0.5) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask_pos & 16) ? vec3(0.0, 0.5, 1.0) : vec3(0.0, 0.0, 0.0),
+                        bool(dbg_did_voxelize) && bool(dbg_passability_mask_pos & 32) ? vec3(0.0, 1.0, 0.5) : vec3(0.0, 0.0, 0.0)
+                    );
+                    colortex0.rgb = colors[clamp(int((frag_at_midBlock[DEBUG_CL_DISPDIR] + 0.5) * 16.0), 0, 15)];
+                    colortex0.a = 0.5;
+                    // colortex0.rgb = vec3(frag_at_midBlock[DEBUG_CL_DISPDIR] + 0.5);
+                #endif
+            }
+        #endif
+	#endif
 
 	// if (colortex0.a < alphaTestRef || texture(colortex8, gl_FragCoord.xy / view_size).r > 0.5) {
 	// 	discard;

@@ -96,6 +96,7 @@ void main() {
         if (texture(colortex8, texcoord).g > 0.5) {
             float ao = get_ssao_occlusion(texcoord, vxDepthTexOpaque, colortex7, noisetex, SSAOMats(gbufferModelView, gbufferModelViewInverse, gbufferProjection, gbufferProjectionInverse));
             out_colortex0.rgb *= 1.0 + ao;
+            out_colortex0.rgb = vec3(1.0 + ao);
         }
     #endif
 

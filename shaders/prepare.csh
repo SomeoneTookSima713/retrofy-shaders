@@ -51,6 +51,7 @@ void main() {
     ivec3 camshift = cameraPositionInt - previousCameraPositionInt;
 
     ivec3 voxel_pos_read = voxel_pos_base + camshift;
+    // ivec3 voxel_pos_read = voxel_pos_base;
     ivec3 voxel_pos_write = voxel_pos_base;
     
     vec4 curr_voxel_val;
@@ -103,6 +104,7 @@ void main() {
         );
 
         vec4 comp_max_val = curr_voxel_info.is_light ? curr_voxel_val : vec4(0.0);
+        // vec4 comp_max_val = curr_voxel_info.is_light ? curr_voxel_val : vec4(hsv2rgb(rgb2hsv(curr_voxel_val.rgb) - vec3(0.0, 0.0, 1.0/15.0)), curr_voxel_val.a - 1.0/15.0);
         for (int i = 0; i < 6; i++) {
             comp_max_val = max(vec4(hsv2rgb(rgb2hsv(vals[i].rgb) - vec3(0.0, 0.0, 1.0/15.0)), vals[i].a - 1.0/15.0), comp_max_val);
         }

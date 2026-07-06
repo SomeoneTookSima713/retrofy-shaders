@@ -35,22 +35,35 @@ out vec3 normal;
 	out float far_plane_distance;
 #endif
 
+#ifdef DEBUG_COLORED_LIGHTING
+    out vec3 frag_at_midBlock;
+    flat out int dbg_did_voxelize;
+    flat out int dbg_overwrote_value;
+    flat out int dbg_passable;
+    flat out int dbg_passability_mask;
+    flat out int dbg_passability_mask_pos;
+#endif
+
 void main() {
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
 	color = gl_Color;
 	normal = gl_Normal;
-	// tangent = normalize(at_tangent.xyz / at_tangent.w);
-	// bitangent = normalize(cross(vertex.normal, vertex.tangent));
+	vec3 tangent = normalize(at_tangent.xyz / at_tangent.w);
+	vec3 bitangent = normalize(cross(normal, tangent));
 
 	#ifdef DISTANT_HORIZONS
 		far_plane_distance = far - length(gl_Vertex.xyz);
 	#endif
 
+    #ifdef DEBUG_COLORED_LIGHTING
+        frag_at_midBlock = at_midBlock.xyz / 64.0;
+    #endif
+
 	colored_lighting_compute_vertex_outputs_terrain(at_midBlock, normal, cameraPositionFract, previousCameraPositionFract, frameCounter);
 	#ifndef DO_COLORED_LIGHTING
-		blocklight_color = BLOCKLIGHT_COLOR;
+		blocklight = vec4(BLOCKLIGHT_COLOR, lmcoord.x);
 	#endif
 
 	// colored_lighting_voxelize_terrain(gl_Vertex.xyz, gtexture, texcoord, atlasSize, mc_Entity, at_midBlock, frameCounter);
@@ -61,12 +74,21 @@ void main() {
             at_midBlock,
             mc_midTexCoord,
             texcoord,
+            tangent,
+            bitangent,
             normal,
             gl_ModelViewMatrix != gbufferModelView,
             true,
             gtexture,
             atlasSize,
             frameCounter
+            #ifdef DEBUG_COLORED_LIGHTING
+            , dbg_did_voxelize,
+            dbg_passable,
+            dbg_passability_mask,
+            dbg_passability_mask_pos,
+            dbg_overwrote_value
+            #endif
         );
     #endif
 }

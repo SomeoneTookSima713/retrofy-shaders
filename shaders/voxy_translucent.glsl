@@ -93,6 +93,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
             ),
             skyColor, fogColor,
             sunPosition, moonPosition,
+            eyeBrightness,
             DEFAULT_FOG_PARAMS
             // FogPlanes(near, far, dhNearPlane, dhFarPlane)
         );

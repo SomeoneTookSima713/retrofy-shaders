@@ -13,6 +13,7 @@ uniform mat4 shadowModelView;
 uniform ivec2 atlasSize;
 uniform int frameCounter;
 
+in vec4 at_tangent;
 in vec4 at_midBlock;
 in vec2 mc_Entity;
 in vec2 mc_midTexCoord;
@@ -23,13 +24,19 @@ void main() {
 
     vec3 foot_pos = (shadowModelViewInverse * vec4((gl_ModelViewMatrix * gl_Vertex).xyz, 1.0)).xyz;
 
+    vec3 normal = normalize(gl_Normal);
+    vec3 tangent = normalize(at_tangent.xyz / at_tangent.w);
+    vec3 bitangent = cross(normal, tangent);
+
     colored_lighting_voxelize_terrain(
         foot_pos + at_midBlock.xyz / 64.0 + cameraPositionFract,
         mc_Entity,
         at_midBlock,
         mc_midTexCoord,
         (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy,
-        normalize(gl_Normal),
+        tangent,
+        bitangent,
+        normal,
         gl_ModelViewMatrix != shadowModelView,
         false,
         gtexture,
