@@ -33,6 +33,7 @@ out vec3 normal;
 out vec3 tangent;
 // out vec3 bitangent;
 out float normal_influence;
+flat out int is_sable;
 
 #ifdef DISTANT_HORIZONS
 	out float far_plane_distance;
@@ -70,9 +71,10 @@ void main() {
         frag_at_midBlock = at_midBlock.xyz / 64.0;
     #endif
 
-    bool is_sable = gl_ModelViewMatrix != gbufferModelView;
+    bool is_sable_bool = gl_ModelViewMatrix != gbufferModelView;
+    is_sable = int(is_sable_bool);
 
-	if (!is_sable) {
+	if (!is_sable_bool) {
         colored_lighting_compute_vertex_outputs_terrain(at_midBlock, normal, cameraPositionFract, previousCameraPositionFract, frameCounter);
     } else {
         colored_lighting_compute_vertex_outputs_general(normal, cameraPositionFract, previousCameraPositionFract, frameCounter);
@@ -92,7 +94,7 @@ void main() {
             tangent,
             bitangent,
             normal,
-            is_sable,
+            is_sable_bool,
             true,
             gtexture,
             atlasSize,

@@ -94,9 +94,11 @@ void main() {
     #elif defined VOXY
         // Voxy SSAO
         if (texture(colortex8, texcoord).g > 0.5) {
-            float ao = get_ssao_occlusion(texcoord, vxDepthTexOpaque, colortex7, noisetex, SSAOMats(gbufferModelView, gbufferModelViewInverse, gbufferProjection, gbufferProjectionInverse));
-            out_colortex0.rgb *= 1.0 + ao;
-            out_colortex0.rgb = vec3(1.0 + ao);
+            float ao = get_ssao_occlusion(texcoord, vxDepthTexOpaque, colortex7, noisetex, vec2(viewWidth, viewHeight), SSAOMats(gbufferModelView, gbufferModelViewInverse, gbufferProjection, gbufferProjectionInverse));
+            // out_colortex0.rgb *= 1.0 + ao;
+            out_colortex0.rgb *= ao;
+            // out_colortex0.rgb = vec3(1.0 + ao * 0.5);
+            // out_colortex0.rgb = vec3(ao);
         }
     #endif
 

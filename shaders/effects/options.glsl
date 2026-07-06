@@ -218,9 +218,9 @@
 #elif defined VOXY
     #define SSAO_STRENGTH 0.5
     #define SSAO_OFFSET 0
-    #define SSAO_FALLOFF 0.0
+    #define SSAO_FALLOFF 55.0
     #define SSAO_RAD 0.006
-    #define SSAO_SAMPLES 64
+    #define SSAO_SAMPLES 48
 #else
     #define SSAO_STRENGTH 0.25
     #define SSAO_OFFSET 0

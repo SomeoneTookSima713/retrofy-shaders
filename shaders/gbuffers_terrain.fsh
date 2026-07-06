@@ -52,6 +52,7 @@ in vec3 normal;
 in vec3 tangent;
 // in vec3 bitangent;
 in float normal_influence;
+flat in int is_sable;
 
 #ifdef DISTANT_HORIZONS 
 	in float far_plane_distance;
@@ -71,15 +72,17 @@ in float normal_influence;
 // #endif
 
 #ifdef RENDER_LMCOORD
-/* RENDERTARGETS: 0,1,7 */
+/* RENDERTARGETS: 0,1,7,8 */
 layout(location = 0) out vec4 colortex0;
 layout(location = 1) out vec4 lightmap_data;
 layout(location = 2) out vec4 encoded_normal;
+layout(location = 3) out vec4 lod_mask_stuff;
 #else
-/* RENDERTARGETS: 0,7 */
+/* RENDERTARGETS: 0,7,8 */
 layout(location = 0) out vec4 colortex0;
 // layout(location = 1) out vec4 lightmap_data;
 layout(location = 1) out vec4 encoded_normal;
+layout(location = 2) out vec4 lod_mask_stuff;
 #endif
 
 void main() {
@@ -102,6 +105,10 @@ void main() {
 		colortex0.rgb *= hsv_posterize(get_static_light(pixelated_lmcoord, worldTime, ambientLight, fogColor, final_blocklight), LIGHT_COLOR_AMOUNT);
 	#endif
 	colortex0.rgb *= mix(1.0, get_normal_based_tint(normal, pixelated_lmcoord.y, gl_ModelViewMatrixInverse, sunPosition, moonPosition, worldTime), normal_influence);
+
+    lod_mask_stuff = bool(is_sable) ? vec4(0.0, 0.0, 0.0, 1.0) : vec4(0.0);
+
+    // colortex0.rgb = vec3(ao);
 
 	#ifdef DEBUG_COLORED_LIGHTING
         vec4 world_pos_w = gbufferModelViewInverse * gbufferProjectionInverse * vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2.0 - 1.0, gl_FragCoord.z * 2.0 - 1.0, 1.0);
