@@ -1,6 +1,6 @@
 #version 430 compatibility
 
-layout(std430, binding = 0) buffer MAKESHIFT_DEPTH { uint ssbo_depth_buf[]; };
+// layout(std430, binding = 1) buffer MAKESHIFT_DEPTH { uint ssbo_depth_buf[]; };
 
 uniform float viewWidth;
 uniform float viewHeight;

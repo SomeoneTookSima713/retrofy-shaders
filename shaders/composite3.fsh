@@ -3,6 +3,7 @@
 #define LIB_BLUR_CONF_GLINT_EXTRAS
 #include "/effects/options.glsl"
 #include "/effects/fog_and_sky.glsl"
+#include "/effects/enchantment_glint.glsl"
 #include "/lib/blur.glsl"
 #include "/lib/colors.glsl"
 #include "/lib/unified_depth.glsl"
@@ -10,10 +11,10 @@
 uniform sampler2D colortex0;
 uniform sampler2D colortex1; // lightmap
 uniform sampler2D colortex4; // hand
-uniform sampler2D colortex5; // glint mask
-uniform sampler2D colortex6; // glint colors
+// uniform usampler2D colortex5; // glint mask
+// uniform sampler2D colortex6; // glint colors
 uniform sampler2D colortex7; // normals
-uniform sampler2D colortex9; // unglint mask
+// uniform sampler2D colortex9; // glint depth
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D dhDepthTex0;
@@ -93,65 +94,75 @@ void main() {
     float dh_depth = texture(dhDepthTex0, texcoord).r;
     float dh_opaque_depth = texture(dhDepthTex1, texcoord).r;
 
-    vec4 glint_mask = texture(colortex5, texcoord);
-    vec4 unglint_mask = texture(colortex9, texcoord);
-    float mask_depth = glint_mask.b;
-    float image_depth = linearize_depth(texture(depthtex0, texcoord).r, near, far);
-    if (glint_mask.r > 0.5 &&
-        (
-            mask_depth < image_depth &&
-            (unglint_mask.r < 0.1 || glint_mask.g > 0.5)
-        )
-    ) {
-        vec3 glintcol = texture(colortex6, texcoord).rgb;
-        glintcol = rgb2hsv(glintcol);
-        
-        glintcol.x = mod(glintcol.x+0.05,1.0);
-        glintcol.y *= 1.1;
-        glintcol.z = clamp(glintcol.z, 0.4, 1.0) * 2.0;
+    // vec4 glint_mask = texture(colortex5, texcoord);
+    bool is_glint, is_gbuffers_hand, is_unblurred;
+    float enchantment_effect_luma;
+    read_and_decode_glint_mask(ivec2(gl_FragCoord.xy), is_glint, is_gbuffers_hand, is_unblurred, enchantment_effect_luma);
 
-        glintcol = clamp(hsv2rgb(glintcol), vec3(0.0), vec3(1.0));
+    // vec4 unglint_mask = texture(colortex9, texcoord);
+    // float mask_depth = glint_mask.b;
+    float mask_depth = texelFetch(colortex9, ivec2(gl_FragCoord.xy), 0).r;
+    // float image_depth = linearize_depth(texture(depthtex0, texcoord).r, near, far);
+    vec4 view_w = gbufferProjectionInverse * vec4(texcoord * 2.0 - 1.0, texture(depthtex0, texcoord).r * 2.0 - 1.0, 1.0);
+    float image_depth = abs(view_w.z / view_w.w);
+
+    vec3 glintcol = texture(colortex6, texcoord).rgb;
+    glintcol = rgb2hsv(glintcol);
+    vec3 glintcol_inner = glintcol;
+    
+    // glintcol.x = mod(glintcol.x+0.05,1.0);
+    glintcol.y *= 1.1;
+    glintcol.z = clamp(glintcol.z, 0.3, 1.0) * 2.0;
+    glintcol_inner.y *= 1.5;
+    glintcol_inner.z = clamp(glintcol_inner.z, 0.2, 1.0) * 1.5;
+
+    glintcol = clamp(hsv2rgb(glintcol), vec3(0.0), vec3(1.0));
+    glintcol_inner = clamp(hsv2rgb(glintcol_inner), vec3(0.0), vec3(1.0));
+    if (is_glint && (mask_depth < image_depth + 0.05 || is_gbuffers_hand) && !is_unblurred && mask_depth < 12.0) {
         color.rgb = mix(color.rgb, glintcol, GLINT_OUTLINE_OPACITY);
     }
-    if (
-        unglint_mask.r >= 0.1 &&
-        unglint_mask.g <= 0.1 &&
-        abs(mask_depth - image_depth)*(far-near) <= 0.001
+    // color.rgb = vec3(float(is_glint), float(is_gbuffers_hand), 0.0);
+    // color.rgb = vec3(float(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r)*0.5, 0.0, 0.0);
+    else if (
+        is_glint && (mask_depth < image_depth + 0.05 || is_gbuffers_hand) && is_unblurred
     ) {
-        // float glint_mult;
-        // if (out_colortex4.a > 0.01) {
-        //     glint_mult = box_blur_dyn(colortex9, floor(texcoord*floor(view_size/screen_res_mult))/floor(view_size/screen_res_mult)+vec2(0.5,0.5)/view_size, vec2(1.0)/view_size, 5, screen_res_mult*GLINT_GLOW_PULSE_HANDHELD_SIZE).r;
-        // } else {
-        //     glint_mult = box_blur_dyn(colortex9, floor(texcoord*floor(view_size/screen_res_mult))/floor(view_size/screen_res_mult)+vec2(0.5,0.5)/view_size, vec2(1.0)/view_size, 5, -screen_res_mult*GLINT_GLOW_PULSE_SIZE*radius_base/current_pixel_pos.z).r;
-        // }
+        // // float glint_mult;
+        // // if (out_colortex4.a > 0.01) {
+        // //     glint_mult = box_blur_dyn(colortex9, floor(texcoord*floor(view_size/screen_res_mult))/floor(view_size/screen_res_mult)+vec2(0.5,0.5)/view_size, vec2(1.0)/view_size, 5, screen_res_mult*GLINT_GLOW_PULSE_HANDHELD_SIZE).r;
+        // // } else {
+        // //     glint_mult = box_blur_dyn(colortex9, floor(texcoord*floor(view_size/screen_res_mult))/floor(view_size/screen_res_mult)+vec2(0.5,0.5)/view_size, vec2(1.0)/view_size, 5, -screen_res_mult*GLINT_GLOW_PULSE_SIZE*radius_base/current_pixel_pos.z).r;
+        // // }
 
-        float glint_mult = box_blur_dyn(
-            colortex9,
-            floor(texcoord*floor(view_size/screen_res_mult))/floor(view_size/screen_res_mult)+vec2(0.5,0.5)/view_size,
-            vec2(1.0)/view_size,
-            5,
-            out_colortex4.a > 0.01 ? screen_res_mult*GLINT_GLOW_PULSE_HANDHELD_SIZE : -screen_res_mult*GLINT_GLOW_PULSE_SIZE*radius_base/current_pixel_pos.z
-        ).r;
+        // // sampler2D tex, vec2 uv, vec2 texture_size_recip, int kernel_sidelen, float kernel_mult
+        // float glint_mult = box_blur_dyn(
+        //     colortex9,
+        //     floor(texcoord*floor(view_size/screen_res_mult))/floor(view_size/screen_res_mult)+vec2(0.5,0.5)/view_size,
+        //     vec2(1.0)/view_size,
+        //     15,
+        //     out_colortex4.a > 0.01 ? screen_res_mult*GLINT_GLOW_PULSE_HANDHELD_SIZE : -screen_res_mult*GLINT_GLOW_PULSE_SIZE*radius_base/current_pixel_pos.z
+        // ).r;
         
-        // float pulse_val = abs(mod(frameTimeCounter, GLINT_GLOW_PULSE_SPEED) - 0.5*GLINT_GLOW_PULSE_SPEED)*2/GLINT_GLOW_PULSE_SPEED;
+        // // float pulse_val = abs(mod(frameTimeCounter, GLINT_GLOW_PULSE_SPEED) - 0.5*GLINT_GLOW_PULSE_SPEED)*2/GLINT_GLOW_PULSE_SPEED;
         
-        // glint_mult = clamp(glint_mult + GLINT_GLOW_PULSE_FUNC(pulse_val)*GLINT_GLOW_PULSE_STRENGTH, 0.0, 1.0);
-        glint_mult = clamp(glint_mult + glint_mult_add, 0.0, 1.0);
-        vec3 glintcol = texture(colortex6, texcoord).rgb;
-        glintcol = rgb2hsv(glintcol);
+        // // glint_mult = clamp(glint_mult + GLINT_GLOW_PULSE_FUNC(pulse_val)*GLINT_GLOW_PULSE_STRENGTH, 0.0, 1.0);
+        // glint_mult = clamp(glint_mult + glint_mult_add, 0.0, 1.0);
+        // vec3 glintcol = texture(colortex6, texcoord).rgb;
+        // glintcol = rgb2hsv(glintcol);
         
-        glintcol.y *= 1.1*(1+glint_mult);
-        glintcol.z = clamp(glintcol.z, 0.4, 1.0) * 2.0;
+        // glintcol.y *= 1.1*(1+glint_mult);
+        // glintcol.z = clamp(glintcol.z, 0.4, 1.0) * 2.0;
 
-        glintcol = clamp(hsv2rgb(glintcol), vec3(0.0), vec3(1.0));
-        vec3 base_hsv = rgb2hsv(color.rgb);
-        GLINT_BASE_HSV_MODIFIER(base_hsv);
-        color.rgb = hsv2rgb(base_hsv);
-        color.rgb = mix(color.rgb, (GLINT_OVERLAY_COLOR).rgb, (GLINT_OVERLAY_COLOR).a);
-        color.rgb = mix(color.rgb, glintcol, 1-glint_mult);
+        // glintcol = clamp(hsv2rgb(glintcol), vec3(0.0), vec3(1.0));
+        // vec3 base_hsv = rgb2hsv(color.rgb);
+        // GLINT_BASE_HSV_MODIFIER(base_hsv);
+        // color.rgb = hsv2rgb(base_hsv);
+        // color.rgb = mix(color.rgb, (GLINT_OVERLAY_COLOR).rgb, (GLINT_OVERLAY_COLOR).a);
+        // color.rgb = mix(color.rgb, glintcol, 1-glint_mult);
+        color.rgb = mix(color.rgb, glintcol, enchantment_effect_luma / 2.0 + 0.05);
         if (out_colortex4.a > 0.01) {
-            out_colortex4.rgb = mix(out_colortex4.rgb, (GLINT_OVERLAY_COLOR).rgb, (GLINT_OVERLAY_COLOR).a);
-            out_colortex4.rgb = mix(out_colortex4.rgb, glintcol, 1-glint_mult);
+            // out_colortex4.rgb = mix(out_colortex4.rgb, (GLINT_OVERLAY_COLOR).rgb, (GLINT_OVERLAY_COLOR).a);
+            // out_colortex4.rgb = mix(out_colortex4.rgb, glintcol, 1-glint_mult);
+            out_colortex4.rgb = mix(out_colortex4.rgb, glintcol, enchantment_effect_luma / 2.0 + 0.05);
         }
     }
 }

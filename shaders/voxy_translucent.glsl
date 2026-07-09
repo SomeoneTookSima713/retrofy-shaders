@@ -3,6 +3,15 @@
 #include "/lib/normal_based_lighting.glsl"
 #include "/effects/fog_and_sky.glsl"
 #include "/lib/unified_depth.glsl"
+#include "/lib/posterization.glsl"
+
+vec3 hsv_posterize(vec3 color, float color_amount) {
+	#if LIGHT_POSTERIZATION_COLSPACE == 1 // OkLAB
+		return oklab2rgb(posterize(rgb2oklab(color), color_amount));
+	#else // HSV / Fallback
+	    return hsv2rgb(posterize(rgb2hsv(color), color_amount));
+	#endif
+}
 
 // This needs to be updated when the same function in /effects/pixelated_lighting.glsl gets updated!
 vec3 get_static_light(vec2 lmcoord, int worldTime, float ambient_light, vec3 fog_color, vec3 blocklight_color) {
@@ -61,53 +70,66 @@ struct VoxyFragmentParameters {
 void voxy_emitFragment(VoxyFragmentParameters parameters) {
     vec3 normal = vec3(uint((parameters.face>>1)==2), uint((parameters.face>>1)==0), uint((parameters.face>>1)==1)) * (float(int(parameters.face)&1)*2-1);
 
+    // if ((mat3(gbufferModelView) * normal).z < 0.0) {
+    //     discard;
+    // }
+
     float normal_influence = float(int(modelIsShaded((modelData[parameters.modelId]))));
 
     vec2 view_size = vec2(viewWidth, viewHeight);
     vec2 uv = gl_FragCoord.xy / view_size;
 
     vec4 new_col = parameters.sampledColour * parameters.tinting;
-	new_col.rgb *= get_static_light(parameters.lightMap, worldTime, ambientLight, fogColor, BLOCKLIGHT_COLOR * parameters.lightMap.x);
-	new_col.rgb *= mix(1.0, get_normal_based_tint(normal, parameters.lightMap.y, gbufferModelViewInverse, sunPosition, moonPosition, worldTime), normal_influence);
+	new_col.rgb *= hsv_posterize(get_static_light(parameters.lightMap, worldTime, ambientLight, fogColor, BLOCKLIGHT_COLOR * pow(parameters.lightMap.x, 1.2)), LIGHT_COLOR_AMOUNT);
+	// new_col.rgb *= mix(1.0, get_normal_based_tint(normal, parameters.lightMap.y, gbufferModelViewInverse, sunPosition, moonPosition, worldTime), normal_influence);
 
-    // float old_z = float(ssbo_depth_buf[int(gl_FragCoord.x) + int(gl_FragCoord.y*viewWidth)]) / 16.0;
-    float old_depth = texture(vxDepthTexTrans, uv).r;
+    // vec4 view_w = vxProjInv * vec4(gl_FragCoord.xyz / vec3(viewWidth, viewHeight, 1.0) * 2.0 - 1.0, 1.0);
+    // vec3 viewspace = view_w.xyz / view_w.w;
+    // float curr_z = abs(viewspace.z);
 
-    vec4 old_view_w = vxProjInv * vec4(uv * 2.0 - 1.0, old_depth * 2.0 - 1.0, 1.0);
-    vec4 view_w = vxProjInv * vec4(uv * 2.0 - 1.0, gl_FragCoord.z * 2.0 - 1.0, 1.0);
+    // // float old_z = float(atomicMin(ssbo_depth_buf[int(gl_FragCoord.x) + int(gl_FragCoord.y*viewWidth)], uint(curr_z * 16.0))) / 16.0;
+    // float old_z;
+    // // if (abs(old_z - 2048.0) < 0.01) {
+    // if (true) {
+    //     vec2 uv = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
+    //     vec4 old_view_w = vxProjInv * vec4(vec3(uv, texture(vxDepthTexOpaque, uv).r) * 2.0 - 1.0, 1.0);
+    //     old_z = abs(old_view_w.z / old_view_w.w);
+    // }
+    // vec3 old_viewspace = viewspace / viewspace.z * old_z;
 
-    vec3 old_viewspace = old_view_w.xyz / old_view_w.w;
-    vec3 viewspace = view_w.xyz / view_w.w;
-    // vec3 old_viewspace = vec3(viewspace.xy, old_z);
+    // // new_col.r = old_z - curr_z > 8.0 ? 1.0 : 0.0;
+    // // float old_depth = texture(vxDepthTexTrans, uv).r;
 
-    if (old_depth < 1.0) {
-        // We need to add the fog normally added to opaque terrain already, as it would otherwise have none at all.
+    // vec4 old_fog_col = get_fog_color(
+    //     uv, old_viewspace, old_z - curr_z,
+    //     eyeAltitude,
+    //     FogMats(
+    //         gbufferModelView, gbufferModelViewInverse,
+    //         gbufferProjection, gbufferProjectionInverse,
+    //         vxProjInv
+    //     ),
+    //     skyColor, fogColor,
+    //     sunPosition, moonPosition,
+    //     eyeBrightness,
+    //     DEFAULT_FOG_PARAMS
+    //     // FogPlanes(near, far, dhNearPlane, dhFarPlane)
+    // );
 
-        vec4 old_fog_col = get_fog_color(
-            uv, old_viewspace, distance(old_viewspace, viewspace),
-            eyeAltitude,
-            FogMats(
-                gbufferModelView, gbufferModelViewInverse,
-                gbufferProjection, gbufferProjectionInverse,
-                vxProjInv
-            ),
-            skyColor, fogColor,
-            sunPosition, moonPosition,
-            eyeBrightness,
-            DEFAULT_FOG_PARAMS
-            // FogPlanes(near, far, dhNearPlane, dhFarPlane)
-        );
+    // float alpha_value = mix(old_fog_col.a, 1.0, new_col.a);
+    // float old_fog_rgb_mult = old_fog_col.a*(1 - new_col.a);
 
-        float alpha_value = mix(old_fog_col.a, 1.0, new_col.a);
-        float old_fog_rgb_mult = old_fog_col.a*(1 - new_col.a);
+    // colortex0.rgb = (old_fog_col.rgb * old_fog_rgb_mult + new_col.rgb * new_col.a)/alpha_value;
+    // colortex0.a = alpha_value;
 
-        colortex0.rgb = (old_fog_col.rgb * old_fog_rgb_mult + new_col.rgb * new_col.a)/alpha_value;
-        colortex0.a = alpha_value;
-    } else {
-        // No need for any fancy baked blending equations or fog, just supply the translucent's color
+    // if (old_depth < 1.0) {
+    //     // We need to add the fog normally added to opaque terrain already, as it would otherwise have none at all.
 
-        colortex0 = new_col;
-    }
+    // } else {
+    //     // No need for any fancy baked blending equations or fog, just supply the translucent's color
+
+    //     colortex0 = new_col;
+    // }
+    colortex0 = new_col;
 
     // colortex0.rgb = (colortex0.rgb * colortex0.a + new_col.rgb * new_col.a) / (1.0 - colortex0.a);
     // colortex0.a += new_col.a - colortex0.a * new_col.a;

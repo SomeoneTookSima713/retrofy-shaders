@@ -114,7 +114,9 @@ vec3 get_static_light(vec2 lmcoord, int worldTime, float ambient_light, vec3 fog
 	// blocklight = hsv2rgb(blocklight);
 	// blocklight *= pow(lmcoord.x, 1.2);
 	vec3 blocklight = blocklight_color;
-	lmcoord.x = rgb2hsv(blocklight_color).z;
+    #ifdef DO_COLORED_LIGHTING
+	    lmcoord.x = rgb2hsv(blocklight_color).z;
+    #endif
 
 	// return vec3(lmcoord, clamp(MINIMUM_LIGHT.a - lmcoord.x - lmcoord.y, 0.0, 1.0));
 	return skylight + max(blocklight * (1-(skylight.r+skylight.g+skylight.b)/3), vec3(0.0)) + MINIMUM_LIGHT.rgb * clamp(AMBIENT_LIGHT_ADD - lmcoord.x - lmcoord.y, 0.0, 1.0);

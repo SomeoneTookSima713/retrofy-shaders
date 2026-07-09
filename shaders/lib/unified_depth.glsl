@@ -13,8 +13,19 @@ float unidepth_linearize_depth(vec2 uv, sampler2D reg_depth, sampler2D dh_depth,
     return min(r, d);
 }
 
+// Linearizes the depth and returns it in blocks
 float unidepth_linearize_depth(float depthval, float near, float far) {
-    return ((2.0 * near * far) / (far + near - (depthval * 2.0 - 1.0) * (far - near))) / far;
+    return (2.0 * near * far) / (far + near - (depthval * 2.0 - 1.0) * (far - near));
+}
+
+vec3 unidepth_reproject_uvw_to_vanilla(vec3 uvw, mat4 lod_proj_inv, mat4 vanilla_proj) {
+    vec4 reproj_w = vanilla_proj * lod_proj_inv * vec4(uvw * 2.0 - 1.0, 1.0);
+    return reproj_w.xyz / reproj_w.w * 0.5 + 0.5;
+}
+
+vec3 unidepth_get_lod_viewspace(vec3 uvw, mat4 lod_proj_inv) {
+    vec4 reproj_w = lod_proj_inv * vec4(uvw * 2.0 - 1.0, 1.0);
+    return reproj_w.xyz / reproj_w.w;
 }
 
 vec3 unidepth_get_viewspace_position(vec2 uv, sampler2D reg_depth, sampler2D dh_depth, mat4 proj_inv, mat4 dh_proj_inv) {

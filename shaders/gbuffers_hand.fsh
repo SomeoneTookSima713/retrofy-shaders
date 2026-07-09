@@ -3,10 +3,11 @@
 #include "/effects/pixelated_lighting.glsl"
 #include "/lib/normal_based_lighting.glsl"
 #include "/effects/colored_lighting/fragment.glsl"
+#include "/effects/enchantment_glint.glsl"
 
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
-uniform sampler2D colortex5;
+// uniform sampler2D colortex5;
 
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
@@ -31,12 +32,12 @@ flat in float glint_mask_mult;
 
 /* RENDERTARGETS: 4,6,9 */
 layout(location = 0) out vec4 colortex0;
-layout(location = 1) out vec4 colortex6;
+layout(location = 1) out vec4 out_colortex6;
 layout(location = 2) out vec4 out_colortex9;
 
 void main() {
 	colortex0 = texture(gtexture, texcoord) * color;
-	colortex6 = colortex0;
+	out_colortex6 = colortex0;
 
 	// colortex0.rgb *= get_static_light(lmcoord, worldTime, ambientLight, fogColor, blocklight_color);
 	vec2 texel_offset;
@@ -55,12 +56,12 @@ void main() {
 		colortex0.rgb *= hsv_posterize(get_static_light(pixelated_lmcoord, worldTime, ambientLight, fogColor, final_blocklight), LIGHT_COLOR_AMOUNT);
 	// #endif
 	colortex0.rgb *= get_normal_based_tint(normal, lmcoord.y, gl_ModelViewMatrixInverse, sunPosition, moonPosition, worldTime);
-	out_colortex9 = vec4(0.0, 0.0, 0.0, 0.0);
 
-	if (currentRenderedItemId == 69) { // Items excluded from enchantment glint outlines
-		// out_colortex5 = vec4(1.0, 0.5, 1.0, 1.0);
-		out_colortex9 = vec4(1.0, 1.0, 0.0, 1.0);
-	}
+    out_colortex9.r = (currentRenderedItemId == 69) ? 1000.0 : texelFetch(colortex9, ivec2(gl_FragCoord.xy), 0).r;
+	// if (currentRenderedItemId == 69) { // Items excluded from enchantment glint outlines
+	// 	// out_colortex5 = vec4(1.0, 0.5, 1.0, 1.0);
+	// 	out_colortex9 = vec4(1.0, 1.0, 0.0, 1.0);
+	// }
 	// if (item_id == 70) {
 	// 	discard;
 	// }

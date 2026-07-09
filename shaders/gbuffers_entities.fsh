@@ -11,6 +11,7 @@
 
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
+uniform sampler2D colortex9;
 
 uniform vec4 entityColor;
 
@@ -25,6 +26,8 @@ uniform int entityId;
 
 uniform float alphaTestRef = 0.1;
 
+uniform int currentRenderedItemId;
+
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 color;
@@ -38,7 +41,7 @@ in float far_plane_distance;
 layout(location = 0) out vec4 colortex0;
 layout(location = 1) out vec4 lightmap_data;
 layout(location = 2) out vec4 encoded_normal;
-layout(location = 2) out vec4 colortex6;
+layout(location = 3) out vec4 colortex6;
 #else
 /* RENDERTARGETS: 0,7,6 */
 layout(location = 0) out vec4 colortex0;

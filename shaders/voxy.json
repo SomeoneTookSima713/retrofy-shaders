@@ -23,11 +23,14 @@
         "vxDepthTexOpaque": "sampler2D",
         "vxDepthTexTrans": "sampler2D"
     },
+    "ssbos": {
+        1: "{ uint ssbo_depth_buf[]; }"
+    },
 #ifdef RENDER_LMCOORD
     "opaqueDrawBuffers": [0,1,7,8],
-    "translucentDrawBuffers": [0,1,7,8]
+    "translucentDrawBuffers": [16,17,18,19]
 #else
     "opaqueDrawBuffers": [0,7,8],
-    "translucentDrawBuffers": [0,7,8]
+    "translucentDrawBuffers": [16,18,19]
 #endif
 }

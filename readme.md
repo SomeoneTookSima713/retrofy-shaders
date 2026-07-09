@@ -7,11 +7,11 @@ Render Texture | Usage
 `colortex2`    | ---
 `colortex3`    | Weather
 `colortex4`    | Hands and selected items
-`colortex5`    | Enchantment glint mask (R=Is glint?; G=Is gbuffers_hand?; B=linearized depth)
+`colortex5`    | Enchantment glint mask (Is glint?; Is gbuffers_hand?)
 `colortex6`    | Enchantment glint color
 `colortex7`    | Normals
 `colortex8`    | LOD Stuff Mask
-`colortex9`    | Enchantment unglint mask
+`colortex9`    | Enchantment glint depth (linearized depth)
 `colortex10`   | ---
 `colortex11`   | ---
 `colortex12`   | ---

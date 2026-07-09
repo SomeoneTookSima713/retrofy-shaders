@@ -1,15 +1,19 @@
 #version 430 compatibility
 
 #include "/effects/options.glsl"
+#include "/effects/enchantment_glint.glsl"
 
 /*
 const int colortex3Format = RGBA16F;
-const int colortex5Format = RGB32F;
+const int colortex5Format = R8UI;
 const int colortex8Format = RGBA32F;
+const int colortex9Format = R32F;
 const int colortex13Format = RG32F;
+const int colortex10Format = R32F;
 const int colortex15Format = R32F;
 const bool colortex13Clear = false;
 const bool colortex14Clear = false;
+const vec4 colortex9ClearColor = vec4(1000.0, 0.0, 0.0, 1.0);
 const vec4 colortex15ClearColor = vec4(10000.0, 0.0, 0.0, 1.0);
 */
 
@@ -42,11 +46,11 @@ uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
-uniform sampler2D colortex5;
-uniform sampler2D colortex6;
+// uniform sampler2D colortex5;
+// uniform sampler2D colortex6;
 uniform sampler2D colortex7;
 uniform sampler2D colortex8;
-uniform sampler2D colortex9;
+// uniform sampler2D colortex9;
 uniform sampler2D colortex10;
 uniform sampler2D colortex11;
 uniform sampler2D colortex12;
@@ -153,9 +157,14 @@ void main() {
 	color.rgb = hsv2rgb(final_hsv);
 
 	#if DEBUG_DISPLAY_TEXTURE != -1
+        #define DDT_MOD(v) v
 		#if DEBUG_DISPLAY_TEXTURE == -2
+            #undef DDT_MOD
+            #define DDT_MOD(v) vec4(vec3(pow(v.r, 384)), 1.0)
 			#define DDT depthtex0
 		#elif DEBUG_DISPLAY_TEXTURE == -3
+            #undef DDT_MOD
+            #define DDT_MOD(v) vec4(vec3(pow(v.r, 384)), 1.0)
 			#define DDT depthtex1
 		#elif DEBUG_DISPLAY_TEXTURE == -4 && defined DISTANT_HORIZONS
 			#define DDT dhDepthTex0
@@ -198,7 +207,7 @@ void main() {
 		#elif DEBUG_DISPLAY_TEXTURE == 15
 			#define DDT colortex15
 		#endif
-		color = texture(DDT, texcoord);
+		color = DDT_MOD(texture(DDT, texcoord));
 	#endif
 
 	// color.rgb = mix(lower_posterized, upper_posterized, dither_mult);
@@ -215,9 +224,31 @@ void main() {
 	// color = texture(colortex12, texcoord);
 	// color = vec4(texture(dhDepthTex0, texcoord).r, 0.0, 0.0, 1.0);
 
+    // const int mipmap_level = 4;
+    bool is_glint, is_gbuffers_hand;
+    // bool is_glint_mip, is_gbuffers_hand_mip;
+    decode_glint_mask(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r, is_glint, is_gbuffers_hand);
+    // decode_glint_mask(texelFetch(colortex5, ivec2(gl_FragCoord.xy / float(1<<mipmap_level)), mipmap_level).r, is_glint_mip, is_gbuffers_hand_mip);
+    // color = mix(color, vec4(float(is_glint), float(is_gbuffers_hand), 0.0, 1.0), 0.5);
+
+    // color = vec4(texture(colortex9, texcoord).r * 0.1, 0.0, 0.0, 1.0);
+
+    // color = texture(colortex6, texcoord);
+
 	// color = vec4((texture(vxDepthTexOpaque, texcoord).r - texture(vxDepthTexTrans, texcoord).r)*100.0, 0.0, 0.0, 1.0);
 
 	// color = vec4(is_zooming, 0.0, 0.0, 1.0);
+
+    // vec4 voxy_reproj_w = gbufferProjection * vxProjInv * vec4(vec3(texcoord, texture(vxDepthTexOpaque, texcoord).r) * 2.0 - 1.0, 1.0);
+    // float voxy_depth = unidepth_linearize_depth(voxy_reproj_w.z / voxy_reproj_w.w, near, far);
+    // float main_depth = unidepth_linearize_depth(texture(depthtex0, texcoord).r, near, far);
+
+    // // color = mix(color, vec4(voxy_depth - main_depth > 0.0 ? 1.0 : 0.0, 0.0, 0.0, 1.0), 0.5);
+    // // color = main_depth < 1.0 ? vec4(main_depth, 0.0, 0.0, 1.0) : color;
+    // color = vec4(vec3(main_depth < voxy_depth ? 1.0 : 0.0), 1.0);
+    // color = vec4(vec3(voxy_depth - main_depth < 0.00001 ? voxy_depth / far : 0.0), 1.0);
+    // color = mix(color, vec4(abs((voxy_depth - main_depth) / far * 0.01) < 0.5 ? 1.0 : 0.0, 0.0, 0.0, 1.0), 0.5);
+    // color = vec4((texture(vxDepthTexOpaque, texcoord).r - texture(depthtex0, texcoord).r) < 0.0 ? 1.0 : 0.0, 0.0, 0.0, 1.0);
 
 	// int screen_res_mult = int(viewHeight / main_reduced_view_size.y);
 	// vec3 current_pixel_pos = get_viewspace_position(texcoord, texture(depthtex0, texcoord).r, gbufferProjectionInverse);
