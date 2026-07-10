@@ -26,6 +26,7 @@
     "ssbos": {
         1: "{ uint ssbo_depth_buf[]; }"
     },
+    "excludeLodsFromVanillaDepth": true,
 #ifdef RENDER_LMCOORD
     "opaqueDrawBuffers": [0,1,7,8],
     "translucentDrawBuffers": [16,17,18,19]

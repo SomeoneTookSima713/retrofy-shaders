@@ -144,7 +144,7 @@ void main() {
             out_colortex0.rgb = mix(out_colortex0.rgb, fog_col.rgb, fog_col.a);
         }
     #elif defined VOXY
-        if (texture(vxDepthTexTrans, texcoord).r < 1.0) {
+        if (texture(depthtex0, texcoord).r == 1.0 && texture(vxDepthTexTrans, texcoord).r < 1.0) {
             vec4 view_w = LOD_PROJ_INV * vec4(vec3(texcoord, texture(vxDepthTexOpaque, texcoord).r) * 2.0 - 1.0, 1.0);
             vec3 viewspace_opaque = view_w.xyz / view_w.w;
 

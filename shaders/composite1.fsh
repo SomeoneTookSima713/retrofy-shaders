@@ -33,6 +33,7 @@ flat in int screen_res_mult;
 
 /*
 const bool colortex5MipmapEnabled = true;
+const bool colortex6MipmapEnabled = true;
 const bool colortex9MipmapEnabled = true;
 */
 
@@ -46,10 +47,13 @@ void main() {
 	// out_colortex5 = fancy_ceiling_box_blur_x(colortex5, texcoord, vec2(viewWidth, viewHeight), GLINT_OUTLINE_RADIUS, GLINT_RADIUS_FALLOFF, near, far);
     // out_colortex5 = fancy_ceiling_box_blur_x(colortex5, ivec2(gl_FragCoord.xy), ivec2(viewWidth, viewHeight), GLINT_OUTLINE_RADIUS, GLINT_RADIUS_FALLOFF, near, far);
     // out_colortex5 = texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0);
+
+    out_colortex9.r = blur_glint_depth(ivec2(gl_FragCoord.xy), colortex9, 6, 1, false);
     out_colortex5.r = blur_glint_mask(ivec2(gl_FragCoord.xy), colortex5, 4, 2, false);
+    // out_colortex5.r = blur_glint_mask(ivec2(gl_FragCoord.xy), colortex5, clamp(int(4.0 * near / out_colortex9.r), 0, 16), 2, false);
     out_colortex5.r |= bool(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r & 1) ? 4 : 0;
     out_colortex6 = vec4(blur_glint_color(ivec2(gl_FragCoord.xy), colortex6, colortex5, 6, false), 1.0);
-    out_colortex9.r = blur_glint_depth(ivec2(gl_FragCoord.xy), colortex9, 6, 1, false);
+    // out_colortex6 = vec4(blur_glint_color(ivec2(gl_FragCoord.xy), colortex6, colortex5, clamp(int(6.0 * near / out_colortex9.r), 0, 18), false), 1.0);
 
     // out_colortex0 = vec4(float(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r) * 0.5, 0.0, 0.0, 1.0);
 

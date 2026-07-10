@@ -40,9 +40,9 @@ uint encode_glint_mask(in bool is_glint, in bool is_gbuffers_hand, in float ench
     return uint(is_glint) | (uint(is_gbuffers_hand) << 1u) | (uint(enchantment_effect_luma * 15.0) << 4u);
 }
 
-uint blur_glint_mask(ivec2 coords, usampler2D mask, const int radius, const int mipmap_level, const bool y_instead_of_x) {
+uint blur_glint_mask(ivec2 coords, usampler2D mask, int radius, const int mipmap_level, const bool y_instead_of_x) {
     coords = coords >> ivec2(mipmap_level);
-    const int radius_mip = radius >> mipmap_level;
+    int radius_mip = radius >> mipmap_level;
 
     uint result = 0u;
 
@@ -55,15 +55,17 @@ uint blur_glint_mask(ivec2 coords, usampler2D mask, const int radius, const int 
 
 vec3 blur_glint_color(ivec2 coords, sampler2D color, usampler2D mask, int blur_radius_px, const bool y_instead_of_x) {
     // int offset = blur_radius_px;
+    coords = coords >> ivec2(1); // Mipmap
     
     vec4 avg_regular = vec4(0.0);
     vec4 avg_hand = vec4(0.0);
     
-    for (int i = 1; i <= blur_radius_px * 2 + 1; i++) {
+    for (int i = 1; i <= blur_radius_px + 1; i++) {
         bool is_glint, is_gbuffers_hand;
         ivec2 curr_offset = y_instead_of_x ? ivec2(0, (i>>1) * (bool(i&1) ? -1 : 1)) : ivec2((i>>1) * (bool(i&1) ? -1 : 1), 0);
-        read_and_decode_glint_mask(coords + curr_offset, is_glint, is_gbuffers_hand);
-        vec3 pixel_color = texelFetch(color, coords + curr_offset, 0).rgb;
+        // read_and_decode_glint_mask(coords + curr_offset, is_glint, is_gbuffers_hand);
+        decode_glint_mask(texelFetch(colortex5, coords + curr_offset, 1).r, is_glint, is_gbuffers_hand);
+        vec3 pixel_color = texelFetch(color, coords + curr_offset, 1).rgb;
 
         avg_regular = max(avg_regular, is_glint ? vec4(pixel_color, 1.0) : vec4(0.0));
         avg_hand = max(avg_hand, is_gbuffers_hand ? vec4(pixel_color, 1.0) : vec4(0.0));
@@ -72,9 +74,9 @@ vec3 blur_glint_color(ivec2 coords, sampler2D color, usampler2D mask, int blur_r
     return avg_hand.a > 0.0 ? avg_hand.rgb / avg_hand.a : avg_regular.rgb / avg_regular.a;
 }
 
-float blur_glint_depth(ivec2 coords, sampler2D depth, const int radius, const int mipmap_level, const bool y_instead_of_x) {
+float blur_glint_depth(ivec2 coords, sampler2D depth, int radius, const int mipmap_level, const bool y_instead_of_x) {
     coords = coords >> ivec2(mipmap_level);
-    const int radius_mip = radius >> mipmap_level;
+    int radius_mip = radius >> mipmap_level;
 
     float result = 1000.0;
 
