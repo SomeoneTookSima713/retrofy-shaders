@@ -71,7 +71,7 @@ vec3 hsv_posterize_dithered(vec3 color, float color_amount, vec2 dither_position
 	#endif
 }
 
-vec2 pixelate_lmcoord(sampler2D gtexture, vec2 texcoord, vec2 lmcoord, inout vec2 texel_offset) {
+vec2 pixelate_lmcoord(sampler2D gtexture, vec2 texcoord, vec2 lmcoord, out vec2 texel_offset) {
 	#ifdef FX_PIXELATED_LIGHTING_EXTRA_CHECKS
 		if (max(length(dFdx(lmcoord)), length(dFdy(lmcoord))) > 1.414/32.0) {
 			return lmcoord;

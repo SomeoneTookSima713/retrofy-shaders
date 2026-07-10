@@ -51,7 +51,7 @@ void main() {
     out_colortex9.r = blur_glint_depth(ivec2(gl_FragCoord.xy), colortex9, 6, 1, false);
     out_colortex5.r = blur_glint_mask(ivec2(gl_FragCoord.xy), colortex5, 4, 2, false);
     // out_colortex5.r = blur_glint_mask(ivec2(gl_FragCoord.xy), colortex5, clamp(int(4.0 * near / out_colortex9.r), 0, 16), 2, false);
-    out_colortex5.r |= bool(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r & 1) ? 4 : 0;
+    out_colortex5.r |= bool(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r & 1u) ? 4u : 0u;
     out_colortex6 = vec4(blur_glint_color(ivec2(gl_FragCoord.xy), colortex6, colortex5, 6, false), 1.0);
     // out_colortex6 = vec4(blur_glint_color(ivec2(gl_FragCoord.xy), colortex6, colortex5, clamp(int(6.0 * near / out_colortex9.r), 0, 18), false), 1.0);
 

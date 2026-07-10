@@ -78,7 +78,9 @@ void main() {
         colored_lighting_compute_vertex_outputs_terrain(at_midBlock, normal, cameraPositionFract, previousCameraPositionFract, frameCounter);
     } else {
         colored_lighting_compute_vertex_outputs_general(normal, cameraPositionFract, previousCameraPositionFract, frameCounter);
+        #ifdef DITHER_LIGHTING
         surface_tangent_world_pos = vec2(0.0);
+        #endif
     }
 	#ifndef DO_COLORED_LIGHTING
 		blocklight = vec4(BLOCKLIGHT_COLOR, lmcoord.x);
