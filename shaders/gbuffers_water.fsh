@@ -4,7 +4,7 @@
 #include "/effects/options.glsl"
 #include "/effects/ssr.glsl"
 #include "/effects/fog_and_sky.glsl"
-#include "/lib/blur.glsl"
+// #include "/lib/blur.glsl"
 #include "/lib/dh_interp.glsl"
 // #include "/lib/cam_utils.glsl"
 #include "/lib/unified_depth.glsl"

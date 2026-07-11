@@ -4,7 +4,7 @@
 #include "/effects/options.glsl"
 #include "/effects/fog_and_sky.glsl"
 #include "/effects/enchantment_glint.glsl"
-#include "/lib/blur.glsl"
+// #include "/lib/blur.glsl"
 #include "/lib/colors.glsl"
 #include "/lib/unified_depth.glsl"
 

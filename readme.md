@@ -45,6 +45,14 @@ Composite Program | Usage
     * now light is able to only pass through blocks from certain directions
     * automatic passability detection based on block meshes is now more dynamic
     * this change may have reintroduced some flickering, but it should at most be a rare occurence
+* disabled colored lighting for now
+    * too buggy, *massively* inflates compile times on NVidia, and takes up more RAM on Linux than AI data centers
+* redid enchantment effects
+    * screen-space pixelation effect, optimized using mipmaps
+* changed SSAO algorithm for LOD terrain to SAO
+* improved translucency handling for Voxy LODs
+* fixed some bugs/warnings
+* removed some includes, minimally reduced compile times
 
 ### Beta 8
 * removed dithering from Sable physics objects

@@ -1,7 +1,9 @@
 #ifndef LIB_COLORS
 #define LIB_COLORS
 
+#if LIGHT_POSTERIZATION_COLSPACE == 1
 #include "/lib/adam_colors.glsl"
+#endif
 
 vec3 rgb2hsv(vec3 c)
 {
@@ -21,6 +23,7 @@ vec3 hsv2rgb(vec3 c)
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
+#if LIGHT_POSTERIZATION_COLSPACE == 1
 vec3 rgb2oklab(vec3 rgb) {
     return SRGB_TO_OKLAB(rgb);
 }
@@ -28,6 +31,7 @@ vec3 rgb2oklab(vec3 rgb) {
 vec3 oklab2rgb(vec3 oklab) {
     return OKLAB_TO_SRGB(oklab);
 }
+#endif
 
 // Mixes two RGB colors using the OkLAB color space.
 vec3 mix_colors(vec3 a, vec3 b, float t) {

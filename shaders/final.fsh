@@ -39,7 +39,7 @@ const int shadowMapResolution = 8;
 #include "/effects/options.glsl"
 #include "/lib/colors.glsl"
 #include "/lib/dither.glsl"
-#include "/lib/blur.glsl"
+// #include "/lib/blur.glsl"
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;

@@ -4,7 +4,7 @@
 #include "/effects/enchantment_glint.glsl"
 // #include "/lib/blur.glsl"
 #include "/lib/blur_but_texel_fetch.glsl"
-#include "/lib/blur_but_go_vroom.glsl"
+// #include "/lib/blur_but_go_vroom.glsl"
 
 // uniform sampler2D colortex5;
 // uniform sampler2D colortex6;
