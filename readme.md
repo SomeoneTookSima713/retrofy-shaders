@@ -40,8 +40,9 @@ Composite Program | Usage
 `1000-1063`|Overrides to the passability mask for voxelized blocks
 
 ## Changelog
-### Release 1.0 (WIP)
+### Release 1.0
 * did some minor code cleanup
+* removed some minor computations (no noticeable performance impact, but should do less work now)
 * reworked rain refraction (no SSR anymore, but optimized and compacted data format + faster, more approximated refraction)
 * colored lighting is now actually turned off by default
 
