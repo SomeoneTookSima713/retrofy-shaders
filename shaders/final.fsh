@@ -81,11 +81,8 @@ uniform float fogEnd;
 
 in vec2 texcoord;
 
-// in vec2 main_reduced_view_size;
-// in vec2 hand_reduced_view_size;
-
-flat in int main_mip_level;
-flat in int hand_mip_level;
+in vec2 main_reduced_view_size;
+in vec2 hand_reduced_view_size;
 
 /* RENDERTARGETS: 0 */
 layout(location = 0) out vec4 color;
@@ -108,22 +105,15 @@ float fog_mode_to_float(int fog_mode) {
 	}
 }
 
-/*
-const bool colortex0MipmapEnabled = true;
-const bool colortex4MipmapEnabled = true;
-*/
-
 void main() {
 	vec2 view_size = vec2(viewWidth, viewHeight);
 
-	// color = texture(colortex0, floor(texcoord * main_reduced_view_size) / main_reduced_view_size + vec2(0.5)/view_size);
-	color = texelFetch(colortex0, ivec2(gl_FragCoord.xy) >> main_mip_level, main_mip_level);
+	color = texture(colortex0, floor(texcoord * main_reduced_view_size) / main_reduced_view_size + vec2(0.5)/view_size);
 	// if (!is_glint_outline(texcoord, colortex5, depthtex0, view_size, int(view_size.y/main_reduced_view_size.y)*3+1, gbufferProjectionInverse)) {
 	// 	vec4 handcol = texture(colortex4, floor(texcoord * hand_reduced_view_size) / hand_reduced_view_size + vec2(0.5)/view_size);
 	// 	color = mix(color, handcol, handcol.a);
 	// }
-	// vec4 handcol = texture(colortex4, floor(texcoord * hand_reduced_view_size) / hand_reduced_view_size + vec2(0.5)/view_size);
-    vec4 handcol = texelFetch(colortex4, ivec2(gl_FragCoord.xy) >> hand_mip_level, hand_mip_level);
+	vec4 handcol = texture(colortex4, floor(texcoord * hand_reduced_view_size) / hand_reduced_view_size + vec2(0.5)/view_size);
 	color = mix(color, handcol, handcol.a);
 
 	#ifdef NETHER
@@ -160,7 +150,7 @@ void main() {
 		vec3 dist = dist_lower / dist_bounds;
 		dist = sign(dist - 0.5)*clamp(abs(dist - 0.5) / (1.0 - FINAL_IMAGE_DITHERING_REDUCTION), 0.0, 0.5) + 0.5;
 
-		vec3 dither_mult = dither4x4(vec2(ivec2(gl_FragCoord.xy) >> main_mip_level), dist);
+		vec3 dither_mult = dither4x4(floor(texcoord * main_reduced_view_size), dist);
 
 		vec3 final_hsv = mix(lower_posterized, upper_posterized, dither_mult);
 	#endif
@@ -236,9 +226,9 @@ void main() {
 	// color = vec4(texture(dhDepthTex0, texcoord).r, 0.0, 0.0, 1.0);
 
     // const int mipmap_level = 4;
-    // bool is_glint, is_gbuffers_hand;
+    bool is_glint, is_gbuffers_hand;
     // bool is_glint_mip, is_gbuffers_hand_mip;
-    // decode_glint_mask(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r, is_glint, is_gbuffers_hand);
+    decode_glint_mask(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r, is_glint, is_gbuffers_hand);
     // decode_glint_mask(texelFetch(colortex5, ivec2(gl_FragCoord.xy / float(1<<mipmap_level)), mipmap_level).r, is_glint_mip, is_gbuffers_hand_mip);
     // color = mix(color, vec4(float(is_glint), float(is_gbuffers_hand), 0.0, 1.0), 0.5);
 

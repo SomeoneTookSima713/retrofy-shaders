@@ -8,7 +8,7 @@ uniform float viewWidth;
 uniform float viewHeight;
 
 out vec2 texcoord;
-flat out int screen_res_mult;
+// flat out int screen_res_mult;
 
 void main() {
 	gl_Position = ftransform();
