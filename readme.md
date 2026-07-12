@@ -1,23 +1,23 @@
 ## Technical infos for developing the shader
 ### Textures
-Render Texture | Usage
----------------|------------
-`colortex0`    | Main image
-`colortex1`    | Lightmap data
-`colortex2`    | ---
-`colortex3`    | Weather
-`colortex4`    | Hands and selected items
-`colortex5`    | Enchantment glint mask (Is glint?; Is gbuffers_hand?)
-`colortex6`    | Enchantment glint color
-`colortex7`    | Normals
-`colortex8`    | LOD Stuff Mask
-`colortex9`    | Enchantment glint depth (linearized depth)
-`colortex10`   | ---
-`colortex11`   | ---
-`colortex12`   | ---
-`colortex13`   | Weatherless Last depthtex0 + depthtex1
-`colortex14`   | Weatherless Last colortex0
-`colortex15`   | Voxy linear Z depth
+Render Texture |  Format  | Usage
+---------------|----------|------------
+`colortex0`    |`RGBA8`   | Main image
+`colortex1`    |`RGBA8`   | Lightmap data
+`colortex2`    |`RGBA8`   | ---
+`colortex3`    |`R32UI`   | Weather (If R & 0x80000000 { R & 0xffffff = Snow color; R & 0x7f000000 = Snow Alpha } Else { R & 0xfff = Normal XY (6bit); R & 0x7ffff = Depth })
+`colortex4`    |`RGBA8`   | Hands and selected items
+`colortex5`    |`R8UI`    | Enchantment glint mask (Is glint?; Is gbuffers_hand?)
+`colortex6`    |`RGBA8`   | Enchantment glint color
+`colortex7`    |`RGBA8`   | Normals
+`colortex8`    |`RGBA32F` | LOD Stuff Mask
+`colortex9`    |`R32F`    | Enchantment glint depth (linearized depth)
+`colortex10`   |`R32F`    | ---
+`colortex11`   |`RGBA8`   | ---
+`colortex12`   |`RGBA8`   | ---
+`colortex13`   |`RG32F`   | Weatherless Last depthtex0 + depthtex1
+`colortex14`   |`RGBA8`   | Weatherless Last colortex0
+`colortex15`   |`R32F`    | ---
 
 ### Programs
 
@@ -40,6 +40,11 @@ Composite Program | Usage
 `1000-1063`|Overrides to the passability mask for voxelized blocks
 
 ## Changelog
+### Release 1.0 (WIP)
+* did some minor code cleanup
+* reworked rain refraction (no SSR anymore, but optimized and compacted data format + faster, more approximated refraction)
+* colored lighting is now actually turned off by default
+
 ### Beta 9
 * improved passability checking
     * now light is able to only pass through blocks from certain directions

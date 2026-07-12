@@ -17,7 +17,7 @@ out vec3 simple_normal;
 void main() {
 	vec3 rain_slant = vec3(0.2, 0.0, 0.1);
 
-	vec4 viewspace = gl_ModelViewMatrix * (gl_Vertex+vec4(rain_slant, 0.0)*(gl_Vertex.y + gl_ModelViewMatrix[3].y)) * 1.1;
+	vec4 viewspace = gl_ModelViewMatrix * (gl_Vertex+vec4(rain_slant, 0.0)*(gl_Vertex.y + gl_ModelViewMatrix[3].y)) * 1.4;
 	gl_Position = gl_ProjectionMatrix * viewspace;
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;

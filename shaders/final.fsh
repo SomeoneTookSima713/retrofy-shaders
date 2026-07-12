@@ -4,7 +4,7 @@
 #include "/effects/enchantment_glint.glsl"
 
 /*
-const int colortex3Format = RGBA16F;
+const int colortex3Format = R32UI;
 const int colortex5Format = R8UI;
 const int colortex8Format = RGBA32F;
 const int colortex9Format = R32F;
@@ -13,6 +13,7 @@ const int colortex10Format = R32F;
 const int colortex15Format = R32F;
 const bool colortex13Clear = false;
 const bool colortex14Clear = false;
+const vec4 colortex3ClearColor = vec4(-3.57331108402828353085551E-43, 0.0, 0.0, 0.0);
 const vec4 colortex9ClearColor = vec4(1000.0, 0.0, 0.0, 1.0);
 const vec4 colortex15ClearColor = vec4(10000.0, 0.0, 0.0, 1.0);
 */

@@ -5,7 +5,6 @@
 #include "/effects/options.glsl"
 #include "/effects/ssr.glsl"
 #include "/effects/fog_and_sky.glsl"
-#include "/lib/cam_utils.glsl"
 #include "/lib/dh_interp.glsl"
 #include "/lib/unified_depth.glsl"
 
@@ -26,8 +25,11 @@ uniform float alphaTestRef = 0.1;
 uniform float viewWidth;
 uniform float viewHeight;
 
-// Declared by cam_utils.glsl
 // uniform vec3 cameraPositionFract;
+// uniform ivec3 cameraPositionInt;
+
+// uniform vec3 previousCameraPositionFract;
+// uniform ivec3 previousCameraPositionInt;
 
 uniform bool isEyeInWater;
 
@@ -53,6 +55,10 @@ uniform int heldItemId;
 uniform int heldItemId2;
 
 uniform vec3 cameraPosition;
+
+// vec3 get_camera_delta() {
+//     return vec3(cameraPositionInt - previousCameraPositionInt) + cameraPositionFract - previousCameraPositionFract;
+// }
 
 in vec2 lmcoord;
 in vec4 color;

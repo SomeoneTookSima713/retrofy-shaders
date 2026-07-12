@@ -48,11 +48,6 @@ flat out int is_sable;
     flat out int dbg_passability_mask_pos;
 #endif
 
-#ifndef IS_IRIS
-out vec2 surface_tangent_world_pos;
-// out vec3 blocklight_color;
-#endif
-
 void main() {
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

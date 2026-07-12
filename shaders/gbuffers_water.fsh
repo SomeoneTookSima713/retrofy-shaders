@@ -6,7 +6,6 @@
 #include "/effects/fog_and_sky.glsl"
 // #include "/lib/blur.glsl"
 #include "/lib/dh_interp.glsl"
-// #include "/lib/cam_utils.glsl"
 #include "/lib/unified_depth.glsl"
 #include "/lib/voxelization_encoding.glsl"
 #include "/effects/colored_lighting/fragment.glsl"
@@ -51,8 +50,6 @@ uniform float ambientLight;
 uniform vec3 skyColor;
 uniform vec3 fogColor;
 
-// Declared by cam_utils.glsl
-// uniform vec3 cameraPositionFract;
 uniform ivec3 cameraPositionInt;
 uniform vec3 cameraPosition;
 
@@ -67,7 +64,6 @@ uniform float far;
 uniform float dhNearPlane;
 uniform float dhFarPlane;
 
-// Declared by cam_utils.glsl
 uniform vec3 cameraPositionFract;
 
 uniform mat4 gbufferModelView;

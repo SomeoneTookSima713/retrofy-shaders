@@ -4,6 +4,7 @@
 #include "/effects/pixelated_lighting.glsl"
 #include "/lib/colors.glsl"
 #include "/effects/colored_lighting/fragment.glsl"
+#include "/lib/weather_encoding.glsl"
 
 uniform sampler2D gtexture;
 uniform sampler2D normals;
@@ -24,16 +25,19 @@ in vec4 glcolor;
 in vec3 simple_normal;
 
 /* RENDERTARGETS: 3 */
-layout(location = 0) out vec4 color;
+layout(location = 0) out uvec4 out_weather_data;
+// layout(location = 1) out vec4 out_debug;
 
 void main() {
-	color = texture(gtexture, texcoord) * glcolor;
+	vec4 color = texture(gtexture, texcoord) * glcolor;
 	vec4 normal = texture(normals, texcoord);
 
 	if (color.a < alphaTestRef) {
 		discard;
 	}
 	color.a *= 0.8;
+
+    // out_debug = vec4(0.0);
 
 	#ifdef RAIN_REFRACTION
 	if (length(abs(normal * 255.0 - vec4(127, 127, 255, 255))) < 0.01) {
@@ -55,11 +59,25 @@ void main() {
 		// #ifdef DITHER_LIGHTING
 		// 	color.rgb *= hsv_posterize_dithered(get_static_light(pixelated_lmcoord, worldTime, ambientLight, fogColor, final_blocklight), LIGHT_COLOR_AMOUNT, surface_tangent_world_pos);
 		// #else
-			color.rgb *= hsv_posterize(get_static_light(pixelated_lmcoord, worldTime, ambientLight, fogColor, final_blocklight), LIGHT_COLOR_AMOUNT);
+        color.rgb *= hsv_posterize(get_static_light(pixelated_lmcoord, worldTime, ambientLight, fogColor, final_blocklight), LIGHT_COLOR_AMOUNT);
 		// #endif
+
+        // Bit format:
+        // 1AAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
+        out_weather_data.x = weatherenc_encode_regular_weather(color);
 	} else {
-		color.rg = (0.5 * simple_normal.xy + 0.5 * normal.xy) * 0.5 + 0.5;
-		color.b = gl_FragCoord.z;
-		color.a = 1.6;
+		// color.rg = (0.5 * simple_normal.xy + 0.5 * normal.xy) * 0.5 + 0.5;
+		// color.b = gl_FragCoord.z;
+		// color.a = 1.6;
+
+        vec2 normal_data = 0.33 * simple_normal.xy + 0.67 * normal.xy;
+
+        // Bit format:
+        // 0DDDDDDD DDDDDDDD DDDDYYYY YYXXXXXX
+        // D - Depth
+        // Y - Normal Y
+        // X - Normal X
+        out_weather_data.x = weatherenc_encode_refracting_rain(normal_data, gl_FragCoord.z);
+        // out_debug.rg = normal_data;
 	}
 }
