@@ -22,15 +22,10 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
-uniform mat4 dhProjectionInverse;
 
 uniform vec3 cameraPosition;
-
 uniform ivec3 cameraPositionInt;
-uniform ivec3 previousCameraPositionInt;
-
 uniform vec3 cameraPositionFract;
-uniform vec3 previousCameraPositionFract;
 
 uniform vec3 fogColor;
 uniform vec3 skyColor;
@@ -49,14 +44,8 @@ uniform ivec2 eyeBrightness;
 
 uniform float fogEnd;
 
-uniform int heldItemId;
-uniform int heldItemId2;
-
-uniform int worldTime;
-uniform int worldDay;
-
 in vec2 texcoord;
-flat in int screen_res_mult;
+// flat in int screen_res_mult;
 
 /* RENDERTARGETS: 0,13,14 */
 layout(location = 0) out vec4 out_colortex0;
@@ -140,10 +129,6 @@ void main() {
     #else
         final_weather_col = weatherenc_decode_regular_weather(weather_info);
     #endif
-
-    // if (base_hsv.y > 0.3 && base_hsv.z < 0.85) {
-    //     weather_color = mix(weather_color*1.1, texture(colortex14, texcoord - sign(texcoord - 0.5)*max(abs(texcoord - 0.5), 0.1) * 64 * screen_res_mult / vec2(viewWidth, viewHeight)).rgb, 0.95);
-    // }
 
     // out_colortex0.rgb = mix(out_colortex0.rgb, weather_color, base_ctex3.a);
     out_colortex0.rgb = mix(out_colortex0.rgb, final_weather_col.rgb, final_weather_col.a);
