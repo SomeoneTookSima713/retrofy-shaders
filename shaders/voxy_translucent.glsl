@@ -1,42 +1,9 @@
 #include "/effects/options.glsl"
-#include "/lib/colors.glsl"
+#include "/effects/pixelated_lighting.glsl"
 #include "/lib/normal_based_lighting.glsl"
 #include "/effects/fog_and_sky.glsl"
 #include "/lib/unified_depth.glsl"
 #include "/lib/posterization.glsl"
-
-vec3 hsv_posterize(vec3 color, float color_amount) {
-	#if LIGHT_POSTERIZATION_COLSPACE == 1 // OkLAB
-		return oklab2rgb(posterize(rgb2oklab(color), color_amount));
-	#else // HSV / Fallback
-	    return hsv2rgb(posterize(rgb2hsv(color), color_amount));
-	#endif
-}
-
-// This needs to be updated when the same function in /effects/pixelated_lighting.glsl gets updated!
-vec3 get_static_light(vec2 lmcoord, int worldTime, float ambient_light, vec3 fog_color, vec3 blocklight_color) {
-	#ifdef THE_END
-		lmcoord.y = AMBIENT_LIGHT_ADD;
-	#else
-		lmcoord.y = clamp(lmcoord.y + AMBIENT_LIGHT_ADD, 1.0/32.0, 31.0/32.0);
-	#endif
-
-	float lm_x = clamp((abs(mod(worldTime / 24000.0 - 0.25, 1.0) - 0.5)*2-0.4375)*8, 0.0, 1.0);
-
-	#if defined NETHER
-		vec3 skylight = hsv2rgb(vec3(rgb2hsv(fog_color).xy, 1.0)*SKYLIGHT_COLOR_HSV_MULT) * lmcoord.y;
-	#elif defined AETHER
-		vec3 skylight = SKYLIGHT_COLOR * lmcoord.y;
-	#else
-		vec3 skylight = mix(SKYLIGHT_COLOR_NIGHT, SKYLIGHT_COLOR, lm_x) * lmcoord.y;
-	#endif
-
-	// vec3 blocklight = blocklight_color * pow(lmcoord.x, 1.2);
-    vec3 blocklight = blocklight_color;
-	lmcoord.x = rgb2hsv(blocklight_color).z;
-
-	return skylight + max(blocklight * (1-(skylight.r+skylight.g+skylight.b)/3), vec3(0.0)) + MINIMUM_LIGHT.rgb * clamp(MINIMUM_LIGHT.a - lmcoord.x - lmcoord.y, 0.0, 1.0);
-}
 
 #ifdef RENDER_LMCOORD
 layout(location = 0) out vec4 colortex0;
@@ -80,7 +47,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
     vec2 uv = gl_FragCoord.xy / view_size;
 
     vec4 new_col = parameters.sampledColour * parameters.tinting;
-	new_col.rgb *= hsv_posterize(get_static_light(parameters.lightMap, worldTime, ambientLight, fogColor, BLOCKLIGHT_COLOR * pow(parameters.lightMap.x, 1.2)), LIGHT_COLOR_AMOUNT);
+	new_col.rgb *= get_static_light(parameters.lightMap, worldTime, ambientLight, fogColor, BLOCKLIGHT_COLOR * pow(parameters.lightMap.x, 1.2));
 	// new_col.rgb *= mix(1.0, get_normal_based_tint(normal, parameters.lightMap.y, gbufferModelViewInverse, sunPosition, moonPosition, worldTime), normal_influence);
 
     // vec4 view_w = vxProjInv * vec4(gl_FragCoord.xyz / vec3(viewWidth, viewHeight, 1.0) * 2.0 - 1.0, 1.0);

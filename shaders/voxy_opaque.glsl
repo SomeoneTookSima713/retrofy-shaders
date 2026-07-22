@@ -1,31 +1,5 @@
-#include "/effects/options.glsl"
-#include "/lib/colors.glsl"
+#include "/effects/pixelated_lighting.glsl"
 #include "/lib/normal_based_lighting.glsl"
-
-// This needs to be updated when the same function in /effects/pixelated_lighting.glsl gets updated!
-vec3 get_static_light(vec2 lmcoord, int worldTime, float ambient_light, vec3 fog_color, vec3 blocklight_color) {
-	#ifdef THE_END
-		lmcoord.y = AMBIENT_LIGHT_ADD;
-	#else
-		lmcoord.y = clamp(lmcoord.y + AMBIENT_LIGHT_ADD, 1.0/32.0, 31.0/32.0);
-	#endif
-
-	float lm_x = clamp((abs(mod(worldTime / 24000.0 - 0.25, 1.0) - 0.5)*2-0.4375)*8, 0.0, 1.0);
-
-	#if defined NETHER
-		vec3 skylight = hsv2rgb(vec3(rgb2hsv(fog_color).xy, 1.0)*SKYLIGHT_COLOR_HSV_MULT) * lmcoord.y;
-	#elif defined AETHER
-		vec3 skylight = SKYLIGHT_COLOR * lmcoord.y;
-	#else
-		vec3 skylight = mix(SKYLIGHT_COLOR_NIGHT, SKYLIGHT_COLOR, lm_x) * lmcoord.y;
-	#endif
-
-	// vec3 blocklight = blocklight_color * pow(lmcoord.x, 1.2);
-    vec3 blocklight = blocklight_color;
-	lmcoord.x = rgb2hsv(blocklight_color).z;
-
-	return skylight + max(blocklight * (1-(skylight.r+skylight.g+skylight.b)/3), vec3(0.0)) + MINIMUM_LIGHT.rgb * clamp(MINIMUM_LIGHT.a - lmcoord.x - lmcoord.y, 0.0, 1.0);
-}
 
 #ifdef RENDER_LMCOORD
 layout(location = 0) out vec4 colortex0;
@@ -62,7 +36,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
     float normal_influence = float(int(modelIsShaded((modelData[parameters.modelId]))));
 
     colortex0 = parameters.sampledColour * parameters.tinting;
-	colortex0.rgb *= get_static_light(parameters.lightMap, worldTime, ambientLight, fogColor, BLOCKLIGHT_COLOR * parameters.lightMap.x);
+	colortex0.rgb *= get_static_light(parameters.lightMap, worldTime, ambientLight, fogColor, BLOCKLIGHT_COLOR * pow(parameters.lightMap.x, 1.2));
 	colortex0.rgb *= mix(1.0, get_normal_based_tint(normal, parameters.lightMap.y, gbufferModelViewInverse, sunPosition, moonPosition, worldTime), normal_influence);
 
 	#ifdef RENDER_LMCOORD

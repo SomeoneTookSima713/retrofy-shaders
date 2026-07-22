@@ -1,9 +1,12 @@
 #ifndef FX_PIXELATED_LIGHTING
 #define FX_PIXELATED_LIGHTING
 
-#include "/lib/pixelation.glsl"
 #include "/effects/options.glsl"
 #include "/lib/colors.glsl"
+
+#ifndef IS_VOXY_PRGM
+
+#include "/lib/pixelation.glsl"
 #include "/lib/dither.glsl"
 #include "/lib/posterization.glsl"
 
@@ -90,6 +93,8 @@ vec3 get_posterized_lightcol(sampler2D lightmap, sampler2D gtexture, vec2 texcoo
 	return hsv_posterize(texture(lightmap, pixelate_lmcoord(gtexture, texcoord, lmcoord, texel_offset)).rgb, LIGHT_COLOR_AMOUNT);
 }
 
+#endif
+
 vec3 get_static_light(vec2 lmcoord, int worldTime, float ambient_light, vec3 fog_color, vec3 blocklight_color) {
 	#ifdef THE_END
 		lmcoord.y = 0.0;
@@ -100,11 +105,11 @@ vec3 get_static_light(vec2 lmcoord, int worldTime, float ambient_light, vec3 fog
 	float lm_y = clamp((abs(mod(worldTime / 24000.0 - 0.25, 1.0) - 0.5)*2-0.4375)*8, 0.0, 1.0);
 
 	#if defined NETHER
-		vec3 skylight = hsv2rgb(vec3(rgb2hsv(fog_color).xy, 1.0)*SKYLIGHT_COLOR_HSV_MULT) * lmcoord.y;
+		vec3 skylight = hsv2rgb(vec3(rgb2hsv(fog_color).xy, 1.0)*SKYLIGHT_COLOR_HSV_MULT);
 	#elif defined AETHER
-		vec3 skylight = SKYLIGHT_COLOR * lmcoord.y;
+		vec3 skylight = SKYLIGHT_COLOR;
 	#else
-		vec3 skylight = mix(SKYLIGHT_COLOR_NIGHT, SKYLIGHT_COLOR, lm_y) * lmcoord.y;
+		vec3 skylight = mix(SKYLIGHT_COLOR_NIGHT, SKYLIGHT_COLOR, lm_y);
 	#endif
 
 	// vec3 default_hsv = rgb2hsv(BLOCKLIGHT_COLOR);
@@ -119,14 +124,29 @@ vec3 get_static_light(vec2 lmcoord, int worldTime, float ambient_light, vec3 fog
     #endif
 
 	// return vec3(lmcoord, clamp(MINIMUM_LIGHT.a - lmcoord.x - lmcoord.y, 0.0, 1.0));
-	return skylight + max(blocklight * (1-(skylight.r+skylight.g+skylight.b)/3), vec3(0.0)) + MINIMUM_LIGHT.rgb * clamp(AMBIENT_LIGHT_ADD - lmcoord.x - lmcoord.y, 0.0, 1.0);
+	// return skylight + max(blocklight * (1-(skylight.r+skylight.g+skylight.b)/3), vec3(0.0)) + MINIMUM_LIGHT.rgb * clamp(AMBIENT_LIGHT_ADD - lmcoord.x - lmcoord.y, 0.0, 1.0);
+    #if defined NETHER
+        vec3 minimum_light = skylight.rgb * AMBIENT_LIGHT_ADD;
+    #elif defined THE_END
+        vec3 minimum_light = (SKYLIGHT_COLOR).rgb * AMBIENT_LIGHT_ADD;
+    #elif defined AETHER
+        vec3 minimum_light = MINIMUM_LIGHT.rgb * AMBIENT_LIGHT_ADD;
+    #else
+        vec3 minimum_light = MINIMUM_LIGHT.rgb * AMBIENT_LIGHT_ADD;
+    #endif
+    vec3 non_skylight = mix(minimum_light, blocklight, clamp(lmcoord.x - AMBIENT_LIGHT_ADD, 0.0, 1.0) / (1.0 - AMBIENT_LIGHT_ADD));
+    
+    return mix(non_skylight, skylight, lmcoord.y);
+    // return vec3(clamp(lmcoord.x - AMBIENT_LIGHT_ADD, 0.0, 1.0) / (1.0 - AMBIENT_LIGHT_ADD), lmcoord.y, 0.0);
 }
 
+#ifndef IS_VOXY_PRGM
 vec3 get_posterized_lightcol_static_lightmap(sampler2D gtexture, vec2 texcoord, vec2 lmcoord, int worldTime, float ambient_light, vec3 fog_color, vec3 blocklight_color) {
 	vec2 texel_offset;
 	vec2 pixelated_lmcoord = pixelate_lmcoord(gtexture, texcoord, lmcoord, texel_offset);
 	
 	return hsv_posterize(get_static_light(pixelated_lmcoord, worldTime, ambient_light, fog_color, blocklight_color), LIGHT_COLOR_AMOUNT);
 }
+#endif
 
 #endif

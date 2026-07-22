@@ -122,7 +122,7 @@ float get_fog_amount(vec3 viewspace_pos, float segment_length, float camera_y, F
 
     // Linear edge fog (it is assumed another segment of length `length(viewspace_pos) - segment_length`
     // gets added onto the pixel's color somewhere else in the shader)
-    amount += segment_length/vals.max_dist;
+    amount += segment_length/(vals.max_dist * (1.0 + vals.spyglass_thingy * 0.5));
 
     #ifdef AETHER
         vec4 proj = mats.proj * vec4(viewspace_pos, 1.0);

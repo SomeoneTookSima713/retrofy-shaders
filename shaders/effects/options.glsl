@@ -44,12 +44,12 @@
 #if defined NETHER // Nether
     // #define SKYLIGHT_COLOR vec3(255, 132, 94) / 255.0
     // #define SKYLIGHT_COLOR_NIGHT vec3(255, 132, 94) / 255.0
-    #define SKYLIGHT_COLOR_HSV_MULT vec3(1.0, 0.6, 0.95)
+    #define SKYLIGHT_COLOR_HSV_MULT vec3(1.0, 0.6, 0.8)
     #define BLOCKLIGHT_COLOR vec3(191, 164, 117) / 255.0
 #elif defined THE_END // End
     #define SKYLIGHT_COLOR vec3(182, 150, 255) / 255.0
     #define SKYLIGHT_COLOR_NIGHT vec3(182, 150, 255) / 255.0
-    #define BLOCKLIGHT_COLOR vec3(204, 140, 245) / 255.0
+    #define BLOCKLIGHT_COLOR vec3(215, 166, 247) / 255.0
 #elif defined AETHER // Aether
     #define SKYLIGHT_COLOR vec3(255, 248, 240) / 255.0
     #define SKYLIGHT_COLOR_NIGHT vec3(47, 53, 61) / 255.0
@@ -69,7 +69,7 @@
 #if defined NETHER // Nether
     #define AMBIENT_LIGHT_ADD 0.4
 #elif defined THE_END // End
-    #define AMBIENT_LIGHT_ADD 0.65
+    #define AMBIENT_LIGHT_ADD 0.6
 #elif defined AETHER // Aether
     #define AMBIENT_LIGHT_ADD 0.7
 #else // Overworld

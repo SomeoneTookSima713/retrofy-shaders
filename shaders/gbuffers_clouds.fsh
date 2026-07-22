@@ -33,7 +33,7 @@ layout(location = 1) out vec4 encoded_normal;
 
 void main() {
 	colortex0 = texture(gtexture, texcoord) * color;
-    colortex0.rgb = vec3(1.0, 0.0, 0.0);
+    // colortex0.rgb = vec3(1.0, 0.0, 0.0);
 	// colortex0 = vec4(1.0, 0.0, 0.0, 1.0);
 	// if (colortex0.a < alphaTestRef) {
 	// 	discard;
