@@ -46,7 +46,7 @@ const int shadowMapResolution = 8;
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
-uniform sampler2D colortex3;
+uniform usampler2D colortex3;
 uniform sampler2D colortex4;
 // uniform sampler2D colortex5;
 // uniform sampler2D colortex6;
@@ -227,10 +227,14 @@ void main() {
 	// color = texture(colortex12, texcoord);
 	// color = vec4(texture(dhDepthTex0, texcoord).r, 0.0, 0.0, 1.0);
 
+    // uint val = texture(colortex3, texcoord).r;
+
+    // color.rgb = vec3(unpackUnorm4x8(val).a, 0.0, 0.0);
+
     // const int mipmap_level = 4;
-    bool is_glint, is_gbuffers_hand;
+    // bool is_glint, is_gbuffers_hand;
     // bool is_glint_mip, is_gbuffers_hand_mip;
-    decode_glint_mask(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r, is_glint, is_gbuffers_hand);
+    // decode_glint_mask(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r, is_glint, is_gbuffers_hand);
     // decode_glint_mask(texelFetch(colortex5, ivec2(gl_FragCoord.xy / float(1<<mipmap_level)), mipmap_level).r, is_glint_mip, is_gbuffers_hand_mip);
     // color = mix(color, vec4(float(is_glint), float(is_gbuffers_hand), 0.0, 1.0), 0.5);
 

@@ -2,6 +2,7 @@
 #define FX_PIXELATED_LIGHTING
 
 #include "/effects/options.glsl"
+#include "/lib/adam_colors.glsl"
 #include "/lib/colors.glsl"
 
 #ifndef IS_VOXY_PRGM
@@ -136,7 +137,7 @@ vec3 get_static_light(vec2 lmcoord, int worldTime, float ambient_light, vec3 fog
     #endif
     vec3 non_skylight = mix(minimum_light, blocklight, clamp(lmcoord.x - AMBIENT_LIGHT_ADD, 0.0, 1.0) / (1.0 - AMBIENT_LIGHT_ADD));
     
-    return mix(non_skylight, skylight, lmcoord.y);
+    return mix(non_skylight, skylight, min(SRGB_LUMA(skylight.rgb), lmcoord.y));
     // return vec3(clamp(lmcoord.x - AMBIENT_LIGHT_ADD, 0.0, 1.0) / (1.0 - AMBIENT_LIGHT_ADD), lmcoord.y, 0.0);
 }
 

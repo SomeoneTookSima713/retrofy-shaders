@@ -6,7 +6,7 @@
 // Bit format:
 // 1AAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
 uint weatherenc_encode_regular_weather(vec4 color) {
-    return WEATHERENC_BIT_IS_SNOW | uint(color.a * 127.0) | (packUnorm4x8(color) & 0x00ffffffu);
+    return WEATHERENC_BIT_IS_SNOW | (uint(color.a * 127.0) << 24u) | (packUnorm4x8(color) & 0x00ffffffu);
 }
 
 // Bit format:
