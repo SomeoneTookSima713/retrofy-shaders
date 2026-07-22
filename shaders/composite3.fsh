@@ -4,6 +4,7 @@
 #include "/effects/options.glsl"
 #include "/effects/fog_and_sky.glsl"
 #include "/effects/enchantment_glint.glsl"
+#include "/effects/easy_dither.glsl"
 // #include "/lib/blur.glsl"
 #include "/lib/colors.glsl"
 #include "/lib/unified_depth.glsl"
@@ -78,14 +79,14 @@ void main() {
     glintcol = clamp(hsv2rgb(glintcol), vec3(0.0), vec3(1.0));
     glintcol_inner = clamp(hsv2rgb(glintcol_inner), vec3(0.0), vec3(1.0));
     if (is_glint && (mask_depth < image_depth + 0.05 || is_gbuffers_hand) && !is_unblurred && mask_depth < 12.0) {
-        color.rgb = mix(color.rgb, glintcol, GLINT_OUTLINE_OPACITY);
+        color.rgb = dither_color_4x4(gl_FragCoord.xy * 0.5, mix(color.rgb, glintcol, GLINT_OUTLINE_OPACITY), GLINT_DITHER_COLOR_AMOUNT);
     }
     // color.rgb = vec3(float(is_glint), float(is_gbuffers_hand), 0.0);
     // color.rgb = vec3(float(texelFetch(colortex5, ivec2(gl_FragCoord.xy), 0).r)*0.5, 0.0, 0.0);
     else if (
         is_glint && (mask_depth < image_depth + 0.05 || is_gbuffers_hand) && is_unblurred
     ) {
-        color.rgb = mix(color.rgb, glintcol, enchantment_effect_luma / 2.0 + 0.05);
+        color.rgb = dither_color_4x4(gl_FragCoord.xy * 0.5, mix(color.rgb, glintcol, enchantment_effect_luma / 2.0 + 0.05), GLINT_DITHER_COLOR_AMOUNT);
         if (out_colortex4.a > 0.01) {
             // out_colortex4.rgb = mix(out_colortex4.rgb, (GLINT_OVERLAY_COLOR).rgb, (GLINT_OVERLAY_COLOR).a);
             // out_colortex4.rgb = mix(out_colortex4.rgb, glintcol, 1-glint_mult);

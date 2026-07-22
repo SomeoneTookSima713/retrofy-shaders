@@ -145,7 +145,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 
 	// dh_stuff_mask = vec4(0.0, 1.0, gl_FragCoord.z * 0.5 + 0.5, 1.0);
     if (texture(depthtex0, uv).r == 1.0) {
-		dh_stuff_mask = vec4(0.0, 1.0, gl_FragCoord.z * 0.5 + 0.5, 1.0);
+		dh_stuff_mask = vec4(0.0, 1.0, gl_FragCoord.z, 1.0);
 	}
 
     // // Makeshift depth buffer using atomics; I'd use an image uniform if voxy *let* me...

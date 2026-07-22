@@ -1,6 +1,10 @@
 #version 430 compatibility
 
+#include "/effects/options.glsl"
 #include "/effects/fog_and_sky.glsl"
+#include "/lib/posterization.glsl"
+#include "/lib/dither.glsl"
+#include "/lib/colors.glsl"
 
 uniform int renderStage;
 uniform float viewHeight;

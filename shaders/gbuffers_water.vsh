@@ -28,6 +28,7 @@ out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 color;
 out vec3 normal;
+flat out int is_sable;
 // out vec3 tangent;
 // out vec3 bitangent;
 
@@ -53,6 +54,9 @@ void main() {
 	vec3 tangent = normalize(at_tangent.xyz / at_tangent.w);
 	vec3 bitangent = normalize(cross(normal, tangent));
 
+    bool is_sable_bool = gl_ModelViewMatrix != gbufferModelView;
+    is_sable = int(is_sable_bool);
+
 	#ifdef DISTANT_HORIZONS
 		far_plane_distance = far - length(gl_Vertex.xyz);
 	#endif
@@ -77,7 +81,7 @@ void main() {
             tangent,
             bitangent,
             normal,
-            gl_ModelViewMatrix != gbufferModelView,
+            is_sable_bool,
             true,
             gtexture,
             atlasSize,

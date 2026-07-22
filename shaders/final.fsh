@@ -2,6 +2,7 @@
 
 #include "/effects/options.glsl"
 #include "/effects/enchantment_glint.glsl"
+#include "/effects/easy_dither.glsl"
 
 /*
 const int colortex3Format = R32UI;
@@ -114,6 +115,7 @@ void main() {
 	// 	color = mix(color, handcol, handcol.a);
 	// }
 	vec4 handcol = texture(colortex4, floor(texcoord * hand_reduced_view_size) / hand_reduced_view_size + vec2(0.5)/view_size);
+    handcol.rgb = dither_color_4x4(gl_FragCoord.xy*0.5, handcol.rgb, FINAL_IMAGE_HAND_COLOR_AMOUNT);
 	color = mix(color, handcol, handcol.a);
 
 	#ifdef NETHER

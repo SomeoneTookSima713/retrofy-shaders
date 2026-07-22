@@ -6,6 +6,7 @@
 #include "/lib/normal_based_lighting.glsl"
 #include "/lib/dh_interp.glsl"
 #include "/lib/voxelization_encoding.glsl"
+#include "/lib/lod_utils.glsl"
 
 #include "/effects/colored_lighting/fragment.glsl"
 
@@ -24,6 +25,7 @@
 
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
+uniform sampler2D colortex8;
 
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
@@ -35,7 +37,13 @@ uniform vec3 fogColor;
 uniform vec3 cameraPositionFract;
 
 uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferProjection;
 uniform mat4 gbufferModelViewInverse;
+
+#ifdef LODS_ENABLED
+uniform mat4 LOD_PROJ_INV;
+uniform sampler2D LOD_DEPTHTEX_FULL;
+#endif
 
 uniform float viewWidth;
 uniform float viewHeight;
@@ -53,6 +61,7 @@ in vec3 tangent;
 // in vec3 bitangent;
 in float normal_influence;
 flat in int is_sable;
+in float lod_depth;
 
 #ifdef DISTANT_HORIZONS 
 	in float far_plane_distance;
@@ -86,6 +95,12 @@ layout(location = 2) out vec4 lod_mask_stuff;
 #endif
 
 void main() {
+    #ifdef LODS_ENABLED
+    if (bool(is_sable) && geometry_is_behind_lods(gl_FragCoord.xy / vec2(viewWidth, viewHeight), LOD_DEPTHTEX_FULL, gl_FragCoord.z, gbufferProjection, LOD_PROJ_INV)) {
+        discard;
+    }
+    #endif
+
 	colortex0 = texture(gtexture, texcoord) * vec4(color, 1.0);
 
 	vec2 texel_offset; // Gets set by pixelate_lmcoord()
@@ -106,7 +121,9 @@ void main() {
 	#endif
 	colortex0.rgb *= mix(1.0, get_normal_based_tint(normal, pixelated_lmcoord.y, gl_ModelViewMatrixInverse, sunPosition, moonPosition, worldTime), normal_influence);
 
-    lod_mask_stuff = bool(is_sable) ? vec4(0.0, 0.0, 0.0, 1.0) : vec4(0.0);
+    #ifdef LODS_ENABLED
+    lod_mask_stuff = vec4(0.0);
+    #endif
 
     // colortex0.rgb = vec3(ao);
 

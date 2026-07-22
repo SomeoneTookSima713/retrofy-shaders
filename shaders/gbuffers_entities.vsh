@@ -40,20 +40,25 @@ void main() {
 	normal = vec4(gl_Normal, entityId == 300 ? 0.0 : 1.0);
 	far_plane_distance = far - length(gl_Vertex.xyz);
 
-	colored_lighting_compute_vertex_outputs_general(normal.xyz, cameraPositionFract, previousCameraPositionFract, frameCounter);
-    blocklight = entityId == 300 ? vec4(BLOCKLIGHT_COLOR, lmcoord.x) : blocklight;
-	#ifndef DO_COLORED_LIGHTING
-		blocklight = vec4(BLOCKLIGHT_COLOR, lmcoord.x);
-	#endif
+    if (entityId == 101) { // Name tags
+        vec3 view = (gl_ModelViewMatrix * gl_Vertex).xyz;
+        gl_Position = gl_ProjectionMatrix * vec4(view, 1.0);
+    } else {
+        colored_lighting_compute_vertex_outputs_general(normal.xyz, cameraPositionFract, previousCameraPositionFract, frameCounter);
+        blocklight = entityId == 300 ? vec4(BLOCKLIGHT_COLOR, lmcoord.x) : blocklight;
+        #ifndef DO_COLORED_LIGHTING
+            blocklight = vec4(BLOCKLIGHT_COLOR, lmcoord.x);
+        #endif
 
-    vec3 world_vert_pos = mat3(gbufferModelViewInverse) * (gl_ModelViewMatrix * gl_Vertex).xyz;
-    colored_lighting_voxelize_entities(
-        world_vert_pos,
-        texcoord,
-        mc_midTexCoord,
-        currentRenderedItemId,
-        gtexture,
-        atlasSize,
-        frameCounter
-    );
+        vec3 world_vert_pos = mat3(gbufferModelViewInverse) * (gl_ModelViewMatrix * gl_Vertex).xyz;
+        colored_lighting_voxelize_entities(
+            world_vert_pos,
+            texcoord,
+            mc_midTexCoord,
+            currentRenderedItemId,
+            gtexture,
+            atlasSize,
+            frameCounter
+        );
+    }
 }

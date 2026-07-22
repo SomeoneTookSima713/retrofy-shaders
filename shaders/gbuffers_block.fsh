@@ -4,6 +4,7 @@
 #include "/lib/pixelation.glsl"
 #include "/lib/normal_based_lighting.glsl"
 #include "/lib/dh_interp.glsl"
+#include "/lib/lod_utils.glsl"
 #include "/effects/colored_lighting/fragment.glsl"
 
 uniform sampler2D lightmap;
@@ -16,7 +17,17 @@ uniform int worldTime;
 uniform float ambientLight;
 uniform vec3 fogColor;
 
+uniform mat4 gbufferProjection;
+
+uniform float viewWidth;
+uniform float viewHeight;
+
 uniform float alphaTestRef = 0.1;
+
+#ifdef LODS_ENABLED
+uniform mat4 LOD_PROJ_INV;
+uniform sampler2D LOD_DEPTHTEX_FULL;
+#endif
 
 in vec2 lmcoord;
 in vec2 texcoord;
@@ -39,6 +50,12 @@ layout(location = 1) out vec4 encoded_normal;
 #endif
 
 void main() {
+    #ifdef LODS_ENABLED
+    if (geometry_is_behind_lods(gl_FragCoord.xy / vec2(viewWidth, viewHeight), LOD_DEPTHTEX_FULL, gl_FragCoord.z, gbufferProjection, LOD_PROJ_INV)) {
+        discard;
+    }
+    #endif
+
 	colortex0 = texture(gtexture, texcoord) * color;
 	// colortex0 *= texture(lightmap, lmcoord);
 

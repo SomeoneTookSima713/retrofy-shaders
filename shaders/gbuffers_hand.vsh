@@ -23,6 +23,9 @@ uniform vec3 cameraPositionFract;
 
 uniform ivec2 atlasSize;
 
+uniform float viewWidth;
+uniform float viewHeight;
+
 out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 color;

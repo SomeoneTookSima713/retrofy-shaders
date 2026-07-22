@@ -5,12 +5,17 @@
 #include "/effects/options.glsl"
 #include "/effects/colored_lighting/vertex.glsl"
 #include "/effects/colored_lighting/voxelization.glsl"
+#include "/lib/lod_utils.glsl"
 
 uniform sampler2D gtexture;
 
 uniform float far;
 
 uniform mat4 gbufferModelView;
+#ifdef LODS_ENABLED
+uniform mat4 LOD_MODEL_VIEW;
+uniform mat4 LOD_PROJ;
+#endif
 
 uniform ivec2 atlasSize;
 
@@ -34,6 +39,7 @@ out vec3 tangent;
 // out vec3 bitangent;
 out float normal_influence;
 flat out int is_sable;
+out float lod_depth;
 
 #ifdef DISTANT_HORIZONS
 	out float far_plane_distance;
@@ -75,6 +81,11 @@ void main() {
         colored_lighting_compute_vertex_outputs_general(normal, cameraPositionFract, previousCameraPositionFract, frameCounter);
         #ifdef DITHER_LIGHTING
         surface_tangent_world_pos = vec2(0.0);
+        #endif
+
+        #ifdef LODS_ENABLED
+        vec4 lod_proj_w = LOD_PROJ * LOD_MODEL_VIEW * gl_Vertex;
+        lod_depth = lod_proj_w.z / lod_proj_w.w;
         #endif
     }
 	#ifndef DO_COLORED_LIGHTING

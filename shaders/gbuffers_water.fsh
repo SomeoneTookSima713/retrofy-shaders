@@ -8,12 +8,16 @@
 #include "/lib/dh_interp.glsl"
 #include "/lib/unified_depth.glsl"
 #include "/lib/voxelization_encoding.glsl"
+#include "/lib/lod_utils.glsl"
 #include "/effects/colored_lighting/fragment.glsl"
 
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
 uniform sampler2D colortex8;
 uniform sampler2D depthtex0;
+#ifdef LODS_ENABLED
+    uniform sampler2D LOD_DEPTHTEX_FULL;
+#endif
 
 #ifdef DEBUG_COLORED_LIGHTING
     layout(r32ui) uniform uimage3D voxel_img;
@@ -23,22 +27,6 @@ uniform sampler2D depthtex0;
 
     #define CLH_READ_COLOR(read_pos) (((frameCounter & 1) == 0) ? imageLoad(color_img, read_pos) : imageLoad(color_img_flip, read_pos))
     #define CLH_SAMPLE_COLOR(read_pos) (((frameCounter & 1) == 0) ? texture3D(color_img_sampler, read_pos) : texture3D(color_img_flip_sampler, read_pos))
-#endif
-
-#if defined DISTANT_HORIZONS
-    uniform sampler2D dhDepthTex0;
-    uniform mat4 dhProjectionInverse;
-    #define LOD_DEPTHTEX dhDepthTex0
-    #define LOD_INV_PROJ dhProjectionInverse
-#elif defined VOXY
-    uniform sampler2D vxDepthTexTrans;
-    uniform mat4 vxProjInv;
-    #define LOD_DEPTHTEX vxDepthTexTrans
-    #define LOD_INV_PROJ vxProjInv
-#else
-    #define LOD_DEPTHTEX depthtex0
-    #define LOD_DEPTHTEX_FULL depthtex0
-    #define LOD_INV_PROJ gbufferProjectionInverse
 #endif
 
 uniform int worldTime;
@@ -70,6 +58,9 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
+#ifdef LODS_ENABLED
+    uniform mat4 LOD_PROJ_INV;
+#endif
 
 uniform float eyeAltitude;
 
@@ -97,6 +88,7 @@ in vec4 color;
 in vec3 normal;
 in vec3 tangent;
 in vec3 bitangent;
+flat in int is_sable;
 #ifdef DISTANT_HORIZONS
 	in float far_plane_distance;
 #endif
@@ -123,6 +115,11 @@ layout(location = 1) out vec4 encoded_normal;
 #endif
 
 void main() {
+    #ifdef LODS_ENABLED
+        if (bool(is_sable) && geometry_is_behind_lods(gl_FragCoord.xy / vec2(viewWidth, viewHeight), LOD_DEPTHTEX_FULL, gl_FragCoord.z, gbufferProjection, LOD_PROJ_INV)) {
+            discard;
+        }
+    #endif
 	vec2 view_size = vec2(viewWidth, viewHeight);
 
 	colortex0 = texture(gtexture, texcoord) * color;
@@ -146,29 +143,13 @@ void main() {
 	#endif
 	// float depth_diff = get_view_position(gl_FragCoord.xy/view_size, texture(dhDepthTex0, gl_FragCoord.xy/view_size).r, dhProjectionInverse).z - get_view_position(gl_FragCoord.xy/view_size, gl_FragCoord.z, gbufferProjectionInverse).z;
 	// float depth_diff = unidepth_linearize_depth(gl_FragCoord.z, near, far) - unidepth_linearize_depth(texture(dhDepthTex0, gl_FragCoord.xy/view_size).r, dhNearPlane, dhFarPlane);
-	
-	vec3 reg_clip_space = vec3(gl_FragCoord.xy / view_size, gl_FragCoord.z) * 2.0 - 1.0;
-    vec4 reg_view_w = gbufferProjectionInverse * vec4(reg_clip_space, 1.0);
-    vec3 reg_view = reg_view_w.xyz / reg_view_w.w;
 
-    // vec3 dh_clip_space = vec3(gl_FragCoord.xy, texture(dhDepthTex0, gl_FragCoord.xy/view_size).r) * 2.0 - 1.0;
-    // vec4 dh_view_w = dhProjectionInverse * vec4(dh_clip_space, 1.0);
-    // vec3 dh_view = dh_view_w.xyz / dh_view_w.w;
-
-    vec3 dh_clip_space = vec3(gl_FragCoord.xy, texture(colortex8, gl_FragCoord.xy/view_size).b) * 2.0 - 1.0;
-    vec4 dh_view_w = gbufferProjectionInverse * vec4(dh_clip_space, 1.0);
-    vec3 dh_view = dh_view_w.xyz / dh_view_w.w;
-
-	bool dh_mask = false; //texture(colortex8, gl_FragCoord.xy / view_size).r > 0.5 && clamp(reg_view.z - dh_view.z, -8.0, 2.0) == reg_view.z - dh_view.z;
 	#ifdef DISTANT_HORIZONS
-	if (dh_mask || should_discard_with_blur(far_plane_distance, gl_FragCoord.xy)) {
-	#else
-	if (dh_mask) {
-	#endif
-	// if (should_discard_with_blur(far_plane_distance, gl_FragCoord.xy)) {
+	if (should_discard_with_blur(far_plane_distance, gl_FragCoord.xy)) {
 		discard;
         // colortex0.rgb = vec3((dh_view.z - reg_view.z) * 0.01);
 	}
+	#endif
 
 	// vec3 viewspace = unidepth_get_viewspace_position(gl_FragCoord.xy/view_size, gl_FragCoord.z, texture(LOD_DEPTHTEX, gl_FragCoord.xy/view_size).r, gbufferProjectionInverse, LOD_INV_PROJ);
 	vec4 view_w = gbufferProjectionInverse * vec4(gl_FragCoord.xy/view_size * 2.0 - 1.0, gl_FragCoord.z * 2.0 - 1.0, 1.0);
@@ -180,7 +161,11 @@ void main() {
 		FogMats(
 			gbufferModelView, gbufferModelViewInverse,
 			gbufferProjection, gbufferProjectionInverse,
-			LOD_INV_PROJ
+			#ifdef LODS_ENABLED
+                LOD_PROJ_INV
+            #else
+                gbufferProjectionInverse
+            #endif
 		),
 		skyColor, fogColor,
 		sunPosition, moonPosition,

@@ -7,6 +7,7 @@
 #include "/lib/pixelation.glsl"
 #include "/lib/dh_interp.glsl"
 #include "/lib/unified_depth.glsl"
+#include "/lib/lod_utils.glsl"
 
 #include "/effects/colored_lighting/fragment.glsl"
 
@@ -26,7 +27,11 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
-uniform mat4 dhProjectionInverse;
+
+#ifdef LODS_ENABLED
+uniform mat4 LOD_PROJ_INV;
+uniform sampler2D LOD_DEPTHTEX_FULL;
+#endif
 
 uniform float eyeAltitude;
 
@@ -67,6 +72,12 @@ layout(location = 1) out vec4 encoded_normal;
 #endif
 
 void main() {
+    #ifdef LODS_ENABLED
+    if (geometry_is_behind_lods(gl_FragCoord.xy / vec2(viewWidth, viewHeight), LOD_DEPTHTEX_FULL, gl_FragCoord.z, gbufferProjection, LOD_PROJ_INV)) {
+        discard;
+    }
+    #endif
+
 	vec2 lmcoord;
 	float ao;
 	vec4 overlayColor;
@@ -105,7 +116,11 @@ void main() {
 	colortex0.rgb *= get_normal_based_tint(normal, 1.0, gl_ModelViewMatrixInverse, sunPosition, moonPosition, worldTime);
 
 	vec2 view_size = vec2(viewWidth, viewHeight);
-	vec3 viewspace = unidepth_get_viewspace_position(gl_FragCoord.xy/view_size, gl_FragCoord.z, texture(dhDepthTex0, gl_FragCoord.xy/view_size).r, gbufferProjectionInverse, dhProjectionInverse);
+    #ifdef LODS_ENABLED
+	vec3 viewspace = unidepth_get_viewspace_position(gl_FragCoord.xy/view_size, gl_FragCoord.z, texture(dhDepthTex0, gl_FragCoord.xy/view_size).r, gbufferProjectionInverse, LOD_PROJ_INV);
+    #else
+	vec3 viewspace = unidepth_get_viewspace_position(gl_FragCoord.xy/view_size, gl_FragCoord.z, texture(dhDepthTex0, gl_FragCoord.xy/view_size).r, gbufferProjectionInverse, gbufferProjectionInverse);
+    #endif
 	// vec4 view_w = gbufferProjectionInverse * vec4((gl_FragCoord.xy / view_size * 2.0 + 1.0, gl_FragCoord.z * 2.0 + 1.0, 1.0));
 	// vec3 viewspace = view_w.xyz / view_w.w;
 
@@ -115,7 +130,11 @@ void main() {
 		FogMats(
 			gbufferModelView, gbufferModelViewInverse,
 			gbufferProjection, gbufferProjectionInverse,
-			dhProjectionInverse
+            #ifdef LODS_ENABLED
+			    LOD_PROJ_INV
+            #else
+                gbufferProjectionInverse
+            #endif
 		),
 		skyColor, fogColor,
 		sunPosition, moonPosition,
