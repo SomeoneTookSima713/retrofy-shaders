@@ -10,7 +10,6 @@ const int colortex5Format = R8UI;
 const int colortex8Format = RGBA32F;
 const int colortex9Format = R32F;
 const int colortex13Format = RG32F;
-const int colortex10Format = R32F;
 const int colortex15Format = R32F;
 const bool colortex13Clear = false;
 const bool colortex14Clear = false;
@@ -131,6 +130,9 @@ void main() {
 			}
 		}
 	#endif
+
+    vec4 bloom = texture(colortex10, texcoord);
+    color.rgb = color.rgb + bloom.rgb * pow(dot(bloom.rgb, vec3(0.2126, 0.7152, 0.0722)), 0.5) * 0.4 * (bloom.a < texture(depthtex0, texcoord).r ? 1.0 : 0.0);
 
 	
 	vec3 hsv = rgb2hsv(color.rgb);

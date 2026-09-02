@@ -66,18 +66,26 @@
     #define MINIMUM_LIGHT vec4(1.0, 1.0, 1.0, 0.1)
 #endif
 
+#define AMBIENT_LIGHT_ADD_OVERWORLD 0.12    // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.60 0.70 0.80 0.90 1.00]
+#define AMBIENT_LIGHT_ADD_NETHER 0.4        // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.60 0.70 0.80 0.90 1.00]
+#define AMBIENT_LIGHT_ADD_END 0.6           // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.60 0.70 0.80 0.90 1.00]
+#define AMBIENT_LIGHT_ADD_AETHER 0.7        // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.60 0.70 0.80 0.90 1.00]
+
 #if defined NETHER // Nether
-    #define AMBIENT_LIGHT_ADD 0.4
+    #define AMBIENT_LIGHT_ADD AMBIENT_LIGHT_ADD_NETHER
 #elif defined THE_END // End
-    #define AMBIENT_LIGHT_ADD 0.6
+    #define AMBIENT_LIGHT_ADD AMBIENT_LIGHT_ADD_END
 #elif defined AETHER // Aether
-    #define AMBIENT_LIGHT_ADD 0.7
+    #define AMBIENT_LIGHT_ADD AMBIENT_LIGHT_ADD_AETHER
 #else // Overworld
-    #define AMBIENT_LIGHT_ADD 0.16
+    #define AMBIENT_LIGHT_ADD AMBIENT_LIGHT_ADD_OVERWORLD
 #endif
 
 #define LIGHT_PIXELATION_MULT 1.0
 #define LIGHT_COLOR_AMOUNT 32.0
+
+#define BLOOM_LMCOORD_THRESH 0.4 // Minimum difference between lmcoord.y and lmcoord.x before applying bloom
+#define BLOOM_LUMA_THRESH 0.6 // Minimum luma value of texture color for it to be added to the bloom mask
 
 // #define DO_COLORED_LIGHTING
 

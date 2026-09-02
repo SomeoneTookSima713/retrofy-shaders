@@ -81,17 +81,19 @@ in float lod_depth;
 // #endif
 
 #ifdef RENDER_LMCOORD
-/* RENDERTARGETS: 0,1,7,8 */
+/* RENDERTARGETS: 0,1,7,8,10 */
 layout(location = 0) out vec4 colortex0;
 layout(location = 1) out vec4 lightmap_data;
 layout(location = 2) out vec4 encoded_normal;
 layout(location = 3) out vec4 lod_mask_stuff;
+layout(location = 4) out vec4 bloom_mask;
 #else
-/* RENDERTARGETS: 0,7,8 */
+/* RENDERTARGETS: 0,7,8,10 */
 layout(location = 0) out vec4 colortex0;
 // layout(location = 1) out vec4 lightmap_data;
 layout(location = 1) out vec4 encoded_normal;
 layout(location = 2) out vec4 lod_mask_stuff;
+layout(location = 3) out vec4 bloom_mask;
 #endif
 
 void main() {
@@ -106,6 +108,11 @@ void main() {
 	vec2 texel_offset; // Gets set by pixelate_lmcoord()
 	vec2 pixelated_lmcoord = pixelate_lmcoord(gtexture, texcoord, lmcoord, texel_offset);
 	colortex0.rgb *= texel_snap(ao, texel_offset);
+
+    float bloom_luma = dot(colortex0.rgb, vec3(0.2126, 0.7152, 0.0722));
+
+    bloom_mask.rgb = colortex0.rgb * max(1.0 - normal_influence - pixelated_lmcoord.y - BLOOM_LMCOORD_THRESH, 0.0) / (1.0 - BLOOM_LMCOORD_THRESH) * (bloom_luma >= BLOOM_LUMA_THRESH ? 1.0 : 0.0);
+    bloom_mask.a = gl_FragCoord.z;
 
 	#ifdef DO_COLORED_LIGHTING
         pixelated_lmcoord.x = texel_snap(blocklight.a, texel_offset);

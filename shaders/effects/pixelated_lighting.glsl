@@ -127,15 +127,20 @@ vec3 get_static_light(vec2 lmcoord, int worldTime, float ambient_light, vec3 fog
 	// return vec3(lmcoord, clamp(MINIMUM_LIGHT.a - lmcoord.x - lmcoord.y, 0.0, 1.0));
 	// return skylight + max(blocklight * (1-(skylight.r+skylight.g+skylight.b)/3), vec3(0.0)) + MINIMUM_LIGHT.rgb * clamp(AMBIENT_LIGHT_ADD - lmcoord.x - lmcoord.y, 0.0, 1.0);
     #if defined NETHER
-        vec3 minimum_light = skylight.rgb * AMBIENT_LIGHT_ADD;
+        // vec3 minimum_light = skylight.rgb * AMBIENT_LIGHT_ADD;
+        vec3 minimum_light = skylight.rgb;
     #elif defined THE_END
-        vec3 minimum_light = (SKYLIGHT_COLOR).rgb * AMBIENT_LIGHT_ADD;
+        // vec3 minimum_light = (SKYLIGHT_COLOR).rgb * AMBIENT_LIGHT_ADD;
+        vec3 minimum_light = (SKYLIGHT_COLOR).rgb;
     #elif defined AETHER
-        vec3 minimum_light = MINIMUM_LIGHT.rgb * AMBIENT_LIGHT_ADD;
+        // vec3 minimum_light = MINIMUM_LIGHT.rgb * AMBIENT_LIGHT_ADD;
+        vec3 minimum_light = MINIMUM_LIGHT.rgb;
     #else
-        vec3 minimum_light = MINIMUM_LIGHT.rgb * AMBIENT_LIGHT_ADD;
+        // vec3 minimum_light = MINIMUM_LIGHT.rgb * AMBIENT_LIGHT_ADD;
+        vec3 minimum_light = MINIMUM_LIGHT.rgb;
     #endif
-    vec3 non_skylight = mix(minimum_light, blocklight, clamp(lmcoord.x - AMBIENT_LIGHT_ADD, 0.0, 1.0) / (1.0 - AMBIENT_LIGHT_ADD));
+    // vec3 non_skylight = mix(minimum_light, blocklight, clamp(lmcoord.x - AMBIENT_LIGHT_ADD, 0.0, 1.0) / (1.0 - AMBIENT_LIGHT_ADD));
+    vec3 non_skylight = minimum_light * AMBIENT_LIGHT_ADD + blocklight * lmcoord.x * (1.0 - AMBIENT_LIGHT_ADD);
     
     return mix(non_skylight, skylight, min(SRGB_LUMA(skylight.rgb), lmcoord.y));
     // return vec3(clamp(lmcoord.x - AMBIENT_LIGHT_ADD, 0.0, 1.0) / (1.0 - AMBIENT_LIGHT_ADD), lmcoord.y, 0.0);

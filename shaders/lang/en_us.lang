@@ -49,7 +49,14 @@ option.RAIN_REFRACTION.comment = Toggles the refraction (and reflection) effect 
 option.BETA_VOLUMETRIC_CLOUDS = (BETA) Volumetric Clouds
 option.BETA_VOLUMETRIC_CLOUDS.comment = Toggles volumetric clouds. WARNING: This is currently an unfinished feature; it uses way too much performance and doesn't fully work properly or look good yet
 
+option.AMBIENT_LIGHT_ADD_OVERWORLD = Overworld min. light
+option.AMBIENT_LIGHT_ADD_NETHER = Nether min. light
+option.AMBIENT_LIGHT_ADD_END = The End min. light
+option.AMBIENT_LIGHT_ADD_AETHER = Aether min. light
+
 screen.LIGHTING = Lighting
+screen.LIGHTING_COLORED = Colored Lighting (BETA)
+screen.LIGHTING_STRENGTHS = Lighting strengths
 screen.FINAL_IMAGE = Screen effects
 
 profile.comment = FULL - Everything on Max (~0.4x Vanilla FPS). CL_PERF - Reduced colored lighting radius (~0.5x Vanilla FPS). CL_MINIMAL - Fastest config supporting colored lighting (~0.6x Vanilla FPS). NO_CL - Colored lighting disabled (~0.75x Vanilla FPS). MINIMAL_PERF - Minimal config for maximum FPS (~0.78x Vanilla FPS)

@@ -17,6 +17,30 @@ vec4 box_blur_3x3(sampler2D tex, vec2 uv, vec2 texture_size_recip) {
     ) / 9;
 }
 
+vec4 box_blur_7x7_x(sampler2D tex, ivec2 uv_int, const int lod) {
+    return (
+        texelFetch(tex, uv_int + ivec2(-3, 0), lod) +
+        texelFetch(tex, uv_int + ivec2(-2, 0), lod) +
+        texelFetch(tex, uv_int + ivec2(-1, 0), lod) +
+        texelFetch(tex, uv_int + ivec2( 0, 0), lod) +
+        texelFetch(tex, uv_int + ivec2(+1, 0), lod) +
+        texelFetch(tex, uv_int + ivec2(+2, 0), lod) +
+        texelFetch(tex, uv_int + ivec2(+3, 0), lod)
+    ) / 7.0;
+}
+
+vec4 box_blur_7x7_y(sampler2D tex, ivec2 uv_int, const int lod) {
+    return (
+        texelFetch(tex, uv_int + ivec2( 0,-3), lod) +
+        texelFetch(tex, uv_int + ivec2( 0,-2), lod) +
+        texelFetch(tex, uv_int + ivec2( 0,-1), lod) +
+        texelFetch(tex, uv_int + ivec2( 0, 0), lod) +
+        texelFetch(tex, uv_int + ivec2( 0,+1), lod) +
+        texelFetch(tex, uv_int + ivec2( 0,+2), lod) +
+        texelFetch(tex, uv_int + ivec2( 0,+3), lod)
+    ) / 7.0;
+}
+
 vec4 box_blur_dyn(sampler2D tex, vec2 uv, vec2 texture_size_recip, int kernel_sidelen, float kernel_mult) {
     vec4 value = vec4(0.0);
 

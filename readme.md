@@ -12,7 +12,7 @@ Render Texture |  Format  | Usage
 `colortex7`    |`RGBA8`   | Normals
 `colortex8`    |`RGBA32F` | LOD Stuff Mask
 `colortex9`    |`R32F`    | Enchantment glint depth (linearized depth)
-`colortex10`   |`R32F`    | ---
+`colortex10`   |`RGBA8`   | Bloom mask
 `colortex11`   |`RGBA8`   | ---
 `colortex12`   |`RGBA8`   | ---
 `colortex13`   |`RG32F`   | Weatherless Last depthtex0 + depthtex1
@@ -23,9 +23,9 @@ Render Texture |  Format  | Usage
 
 Composite Program | Usage
 ------------------|------------
-`deffered`        |LOD SSAO, fog (opaque stuff)
-`composite1`      |Enchantment glint mask & color blur (x direction)
-`composite2`      |Enchantment glint mask & color blur (y direction)
+`deferred`        |LOD SSAO, fog (opaque stuff)
+`composite1`      |Enchantment glint mask & color blur + Bloom blur (x direction)
+`composite2`      |Enchantment glint mask & color blur + Bloom blur (y direction)
 `composite3`      |Enchantment glint outline calculation
 `composite4`      |Clouds, Weather effects
 `final`           |Rendering the hand, misc compositing steps (pixelation, posterization)
